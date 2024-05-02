@@ -1,4 +1,4 @@
-use super::FE;
+use super::{files, FE};
 
 impl eframe::App for FE {
     /// Called each time the UI needs repainting, which may be many times per second.
@@ -22,7 +22,7 @@ impl eframe::App for FE {
         // egui::widgets::global_dark_light_mode_buttons(ui); toggle light/dark mode
 
         // path
-        let _path_resp = egui::TopBottomPanel::top("pathbar")
+        egui::TopBottomPanel::top("pathbar")
             .show(ctx, |ui| {
                 ui.horizontal(|ui| {
                     ui.label("Path");
@@ -39,39 +39,17 @@ impl eframe::App for FE {
                         // change path
                     }
                 });
-            })
-            .response;
-
-        // hover example:
-        // print!("hovered? {:?}\n", _path_resp.hovered());
-
-        egui::CentralPanel::default().show(ctx, |ui| {
-            // The central panel the region left after adding TopPanel's and SidePanel's
-            ui.heading("Files");
-            ui.vertical_centered_justified(|ui| {
-                for entry in &self.entries {
-                    ui.horizontal(|ui| {
-                        let name = entry.file_name();
-                        ui.label(name.to_str().unwrap().to_owned());
-                    });
-                }
-                // ui.horizontal(|ui| {
-                //     ui.label("file 1");
-                //     ui.label("10kb");
-                // });
-                // ui.horizontal(|ui| {
-                //     ui.label("file 2");
-                //     ui.label("100Gb");
-                // });
             });
 
-            ui.separator();
-
+        egui::CentralPanel::default().show(ctx, |ui| {
+            files::draw_files(ui, &self);
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
                 powered_by_egui_and_eframe(ui);
                 egui::warn_if_debug_build(ui);
+                ui.separator();
             });
         });
+
     }
 }
 
