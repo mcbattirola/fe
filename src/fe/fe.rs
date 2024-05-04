@@ -31,7 +31,7 @@ impl eframe::App for FE {
                     match self.path.parent() {
                         Some(parent) => {
                             self.path = PathBuf::from(parent);
-                            self.path_string = self.path.to_str().unwrap().to_owned();
+                            self.update_path_string();
                             self.load_dir_entries();
                         }
                         None => {} // TODO

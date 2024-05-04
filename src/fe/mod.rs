@@ -1,6 +1,5 @@
 use eframe;
 use std::fs;
-use std::path::PathBuf;
 
 mod fe;
 mod render;
@@ -43,25 +42,5 @@ impl FE {
             ..Default::default()
         };
         eframe::run_native("fe", native_options, Box::new(|_cc| Box::new(self)))
-    }
-
-    // updates the internal `path` with the value in `pathString` and load the files of the new dir
-    fn load_dir_entries(&mut self) {
-        self.path = PathBuf::from(&self.path_string);
-        let mut entries = Vec::new();
-
-        match fs::read_dir(&self.path) {
-            Ok(i) => {
-                for entry in i {
-                    let entry = entry.unwrap();
-                    entries.push(entry);
-                }
-
-                self.entries = entries;
-            }
-            Err(err) => {
-                println!("error reading entries: {:?}", err)
-            }
-        }
     }
 }
