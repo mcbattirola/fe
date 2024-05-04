@@ -1,12 +1,14 @@
 use eframe;
 use std::fs;
+use std::path::PathBuf;
 
 mod fe;
-mod files;
+mod render;
 
 pub struct FE {
     // Example stuff:
-    path: String,
+    path: std::path::PathBuf,
+    path_string: String,
     entries: Vec<fs::DirEntry>,
 }
 
@@ -17,14 +19,17 @@ impl FE {
         // `cc.egui_ctx.set_visuals` and `cc.egui_ctx.set_fonts`.
         // Default::default()
         let dir = std::env::current_dir().unwrap();
-        let dir_str = dir.to_str().unwrap();
+        let dir_clone = dir.clone();
+
+        let dir_str = dir_clone.to_str().unwrap();
 
         let mut fe = Self {
-            path: dir_str.to_owned(),
+            path: dir,
+            path_string: dir_str.to_owned(),
             entries: Vec::new(),
         };
 
-        fe.load_dir_entries(dir_str.to_string());
+        fe.load_dir_entries();
 
         return fe;
     }
@@ -33,16 +38,19 @@ impl FE {
         let native_options = eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()
                 .with_inner_size([400.0, 300.0])
-                .with_min_inner_size([300.0, 220.0]),
+                .with_min_inner_size([300.0, 220.0])
+                .with_resizable(true),
             ..Default::default()
         };
-        eframe::run_native("fe", native_options, Box::new(|cc| Box::new(self)))
+        eframe::run_native("fe", native_options, Box::new(|_cc| Box::new(self)))
     }
 
-    fn load_dir_entries(&mut self, dir: String) {
+    // updates the internal `path` with the value in `pathString` and load the files of the new dir
+    fn load_dir_entries(&mut self) {
+        self.path = PathBuf::from(&self.path_string);
         let mut entries = Vec::new();
 
-        match fs::read_dir(dir) {
+        match fs::read_dir(&self.path) {
             Ok(i) => {
                 for entry in i {
                     let entry = entry.unwrap();
