@@ -18,69 +18,65 @@ impl eframe::App for FE {
                         ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                     }
                 });
-                ui.add_space(16.0);
             });
         });
         // egui::widgets::global_dark_light_mode_buttons(ui); toggle light/dark mode
 
-        // path
-        egui::TopBottomPanel::top("pathbar").show(ctx, |ui| {
+        // path and search bars
+        egui::TopBottomPanel::top("top-bars").show(ctx, |ui| {
+            // path
             ui.horizontal(|ui| {
-                if ui.button("back").clicked() {
-                    // go back 1 level
-                    match self.path.parent() {
-                        Some(parent) => {
-                            self.path = PathBuf::from(parent);
-                            self.update_path_string();
-                            self.load_dir_entries();
+                ui.horizontal(|ui| {
+                    if ui.button("back").clicked() {
+                        // go back 1 level
+                        match self.path.parent() {
+                            Some(parent) => {
+                                self.path = PathBuf::from(parent);
+                                self.update_path_string();
+                                self.load_dir_entries();
+                            }
+                            None => {} // TODO
                         }
-                        None => {} // TODO
                     }
-                }
 
-                ui.label("Path");
-                // let mut dir_str = self.path.to_str().unwrap();
-                let path_input = ui.text_edit_singleline(&mut self.path_string);
+                    ui.label("Path");
+                    // let mut dir_str = self.path.to_str().unwrap();
+                    let path_input = ui.text_edit_singleline(&mut self.path_string);
 
-                // on 'enter' key press
-                if path_input.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-                    println!("lost focus due to enter");
-                    // keep focus after enter
-                    path_input.request_focus();
-                    // change path
-                    self.load_dir_entries()
-                }
+                    // on 'enter' key press
+                    if path_input.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                        println!("lost focus due to enter");
+                        // keep focus after enter
+                        path_input.request_focus();
+                        // change path
+                        self.load_dir_entries()
+                    }
 
-                if ui.button("Go").clicked() {
-                    // focus path input
-                    path_input.request_focus();
-                    // change path
-                    self.load_dir_entries()
-                }
+                    if ui.button("Go").clicked() {
+                        // focus path input
+                        path_input.request_focus();
+                        // change path
+                        self.load_dir_entries()
+                    }
+                });
+
+                // search bar
+                ui.horizontal(|ui| {
+                    ui.separator();
+                    ui.label("Seach");
+                    ui.text_edit_singleline(&mut self.search_txt);
+                });
             });
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
+            ctx.set_pixels_per_point(1.2);
             self.draw_files(ui);
+            ui.add_space(30.0);
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                powered_by_egui_and_eframe(ui);
                 egui::warn_if_debug_build(ui);
                 ui.separator();
             });
         });
     }
-}
-
-fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
-    ui.horizontal(|ui| {
-        ui.spacing_mut().item_spacing.x = 0.0;
-        ui.label("Powered by ");
-        ui.hyperlink_to("egui", "https://github.com/emilk/egui");
-        ui.label(" and ");
-        ui.hyperlink_to(
-            "eframe",
-            "https://github.com/emilk/egui/tree/master/crates/eframe",
-        );
-        ui.label(".");
-    });
 }

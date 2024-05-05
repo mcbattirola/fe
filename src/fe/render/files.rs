@@ -1,3 +1,4 @@
+use egui::Label;
 use egui_extras::{Column, TableBuilder};
 use std::{fs, fs::DirEntry, path::PathBuf};
 
@@ -33,14 +34,15 @@ impl FE {
 
     pub fn draw_files(&mut self, ui: &mut egui::Ui) {
         ui.heading("Files");
-        ui.vertical_centered_justified(|ui| {
+        ui.vertical_centered(|ui| {
             let mut table = TableBuilder::new(ui)
                 .striped(true)
                 .resizable(false)
                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .column(Column::auto())
                 .column(Column::remainder())
-                .min_scrolled_height(0.0);
+                // .column(Column::remainder())
+                .min_scrolled_height(0.0)
+                .max_scroll_height(600.0);
 
             table = table.sense(egui::Sense::click());
 

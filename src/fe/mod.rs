@@ -5,10 +5,14 @@ mod fe;
 mod render;
 
 pub struct FE {
-    // Example stuff:
+    // current dir state
     path: std::path::PathBuf,
     path_string: String,
     entries: Vec<fs::DirEntry>,
+
+    // search state
+    search_active: bool,
+    search_txt: String,
 }
 
 impl FE {
@@ -26,6 +30,8 @@ impl FE {
             path: dir,
             path_string: dir_str.to_owned(),
             entries: Vec::new(),
+            search_active: false,
+            search_txt: "".to_owned(),
         };
 
         fe.load_dir_entries();
@@ -36,8 +42,8 @@ impl FE {
     pub fn run(self) -> Result<(), eframe::Error> {
         let native_options = eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default()
-                .with_inner_size([400.0, 300.0])
-                .with_min_inner_size([300.0, 220.0])
+                .with_inner_size([800.0, 600.0])
+                .with_min_inner_size([800.0, 600.0])
                 .with_resizable(true),
             ..Default::default()
         };
