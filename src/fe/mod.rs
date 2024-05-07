@@ -9,6 +9,7 @@ pub struct FE {
     path: std::path::PathBuf,
     path_string: String,
     entries: Vec<fs::DirEntry>,
+    prev_path: Option<std::path::PathBuf>,
 
     // search state
     search_active: bool,
@@ -30,6 +31,7 @@ impl FE {
             path: dir,
             path_string: dir_str.to_owned(),
             entries: Vec::new(),
+            prev_path: None,
             search_active: false,
             search_txt: "".to_owned(),
         };

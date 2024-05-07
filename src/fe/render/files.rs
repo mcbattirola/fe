@@ -1,13 +1,14 @@
-use egui::Label;
 use egui_extras::{Column, TableBuilder};
 use std::{fs, fs::DirEntry, path::PathBuf};
 
 use super::super::FE;
 
 impl FE {
-    // updates `path_string` with current `path` content.
+    // updates `path_string` and `prev_path` with current `path` content.
     // Call after updating `path`
-    pub fn update_path_string(&mut self) {
+    pub fn set_path(&mut self, path: PathBuf) {
+        self.prev_path = Some(self.path.clone());
+        self.path = path;
         self.path_string = self.path.to_str().unwrap().to_owned();
         self.load_dir_entries();
     }
@@ -58,8 +59,7 @@ impl FE {
                         row.col(|ui| {
                             ui.label("📁");
                             if ui.link("..").clicked() {
-                                self.path = self.path.parent().unwrap().to_path_buf();
-                                self.update_path_string();
+                                self.set_path(self.path.parent().unwrap().to_path_buf());
                                 self.load_dir_entries()
                             }
                         });
@@ -78,8 +78,7 @@ impl FE {
                     }
 
                     if let Some(path) = new_path {
-                        self.path = path;
-                        self.update_path_string();
+                        self.set_path(path);
                     }
                 });
         });

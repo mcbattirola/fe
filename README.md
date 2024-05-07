@@ -6,7 +6,7 @@ WIP
 
 - [ ] Path navigation
   - [x] Go to parent
-  - [ ] Go to previous dir
+  - [x] Go to previous dir
 - [ ] Click to go to directory
 - [ ] Image preview
 - [ ] Pinned / Favorite

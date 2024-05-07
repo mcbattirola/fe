@@ -27,20 +27,27 @@ impl eframe::App for FE {
             // path
             ui.horizontal(|ui| {
                 ui.horizontal(|ui| {
-                    if ui.button("back").clicked() {
+                    if ui.button("↩").clicked() {
+                        println!("go back clicked");
+                        match &self.prev_path {
+                            Some(prev) => {
+                                println!("prev is {:?}", prev.to_str());
+                                self.set_path(prev.clone());
+                            },
+                            None => {println!("no prev")},
+                        }
+                    }
+                    if ui.button("⬆").clicked() {
                         // go back 1 level
                         match self.path.parent() {
                             Some(parent) => {
-                                self.path = PathBuf::from(parent);
-                                self.update_path_string();
-                                self.load_dir_entries();
+                                self.set_path(PathBuf::from(parent));
                             }
                             None => {} // TODO
                         }
                     }
 
                     ui.label("Path");
-                    // let mut dir_str = self.path.to_str().unwrap();
                     let path_input = ui.text_edit_singleline(&mut self.path_string);
 
                     // on 'enter' key press
