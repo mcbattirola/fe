@@ -12,7 +12,7 @@ WIP
 - [ ] Pinned / Favorite
 - [ ] New Tabs
 - [ ] Shortcuts
-  - [ ] Ctrl + L -> move cursor to path
+  - [x] Ctrl + L -> move cursor to path
   - [ ] Ctrl + T -> new tab
   - [ ] Ctrl + [1-9] -> go to tab [1-9]
   - [ ] (Ctrl + F) or (/) -> Go to search bar

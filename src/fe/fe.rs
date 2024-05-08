@@ -24,6 +24,15 @@ impl eframe::App for FE {
 
         // path and search bars
         egui::TopBottomPanel::top("top-bars").show(ctx, |ui| {
+            // shortcuts
+            let mut focus_path_bar = false;
+            if ctx.input(|i| {
+                i.key_pressed(egui::Key::L) && i.modifiers.command
+            }) {
+                focus_path_bar = true;
+            }
+
+
             // path
             ui.horizontal(|ui| {
                 ui.horizontal(|ui| {
@@ -52,12 +61,17 @@ impl eframe::App for FE {
 
                     // on 'enter' key press
                     if path_input.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-                        println!("lost focus due to enter");
                         // keep focus after enter
                         path_input.request_focus();
                         // change path
                         self.load_dir_entries()
                     }
+
+                    if focus_path_bar {
+                        path_input.request_focus();
+                    }
+
+
 
                     if ui.button("Go").clicked() {
                         // focus path input
