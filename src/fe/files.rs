@@ -13,6 +13,17 @@ impl FE {
         self.load_dir_entries();
     }
 
+    pub fn go_back_path(&mut self) {
+        match &self.prev_path {
+            Some(prev) => {
+                self.set_path(prev.clone());
+            }
+            None => {
+                println!("no previous dir to go back to")
+            }
+        }
+    }
+
     // updates the internal `path` with the value in `pathString` and load the files of the new dir
     pub fn load_dir_entries(&mut self) {
         self.path = PathBuf::from(&self.path_string);

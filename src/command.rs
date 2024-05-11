@@ -1,17 +1,17 @@
 use egui;
 
 pub enum Modifier {
-    Alt,
-    Ctrl,
-    Shift,
-    MacCmd,
+    _Alt,
+    _Ctrl,
+    _Shift,
+    _MacCmd,
     Cmd,
 }
 
 pub struct Command {
+    event: CommandEvent,
     modifiers: Vec<Modifier>,
     key: Vec<egui::Key>,
-    event: CommandEvent,
 }
 
 pub struct CommandPool {
@@ -23,6 +23,8 @@ pub struct CommandPool {
 pub enum CommandEvent {
     FocusPathBar,
     FocusSearchBar,
+    _Quit,
+    DirGoBack,
 }
 
 impl CommandPool {
@@ -30,14 +32,19 @@ impl CommandPool {
         return Self {
             commands: Vec::from([
                 Command {
+                    event: CommandEvent::FocusPathBar,
                     modifiers: Vec::from([Modifier::Cmd]),
                     key: Vec::from([egui::Key::L]),
-                    event: CommandEvent::FocusPathBar,
                 },
                 Command {
+                    event: CommandEvent::FocusSearchBar,
                     modifiers: Vec::from([Modifier::Cmd]),
                     key: Vec::from([egui::Key::F]),
-                    event: CommandEvent::FocusSearchBar,
+                },
+                Command {
+                    event: CommandEvent::DirGoBack,
+                    modifiers: Vec::from([Modifier::Cmd]),
+                    key: Vec::from([egui::Key::O]),
                 },
             ]),
             events: Vec::new(),
@@ -60,10 +67,10 @@ impl CommandPool {
             for m in &cmd.modifiers {
                 if !ctx.input(|i| {
                     return match &m {
-                        Modifier::Alt => i.modifiers.alt,
-                        Modifier::Ctrl => i.modifiers.ctrl,
-                        Modifier::Shift => i.modifiers.shift,
-                        Modifier::MacCmd => i.modifiers.mac_cmd,
+                        Modifier::_Alt => i.modifiers.alt,
+                        Modifier::_Ctrl => i.modifiers.ctrl,
+                        Modifier::_Shift => i.modifiers.shift,
+                        Modifier::_MacCmd => i.modifiers.mac_cmd,
                         Modifier::Cmd => i.modifiers.command,
                     };
                 }) {

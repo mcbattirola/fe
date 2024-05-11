@@ -9,6 +9,10 @@ impl eframe::App for FE {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.commands.update(ctx);
 
+        if self.commands.get_event(CommandEvent::DirGoBack) {
+            self.go_back_path();
+        }
+
         // Put your widgets into a `SidePanel`, `TopBottomPanel`, `CentralPanel`, `Window` or `Area`.
         // For inspiration and more examples, go to https://emilk.github.io/egui
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -30,16 +34,7 @@ impl eframe::App for FE {
             ui.horizontal(|ui| {
                 ui.horizontal(|ui| {
                     if ui.button("↩").clicked() {
-                        println!("go back clicked");
-                        match &self.prev_path {
-                            Some(prev) => {
-                                println!("prev is {:?}", prev.to_str());
-                                self.set_path(prev.clone());
-                            }
-                            None => {
-                                println!("no prev")
-                            }
-                        }
+                        self.go_back_path();
                     }
                     if ui.button("⬆").clicked() {
                         // go back 1 level

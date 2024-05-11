@@ -14,7 +14,7 @@ pub struct FE {
     prev_path: Option<std::path::PathBuf>,
 
     // search state
-    search_active: bool, // TODO implement search
+    _search_active: bool, // TODO implement search
     search_txt: String,
 
     // commands and shortcuts
@@ -37,7 +37,7 @@ impl FE {
             path_string: dir_str.to_owned(),
             entries: Vec::new(),
             prev_path: None,
-            search_active: false,
+            _search_active: false,
             search_txt: "".to_owned(),
             commands: CommandPool::new(),
         };
