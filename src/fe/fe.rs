@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-use super::{command::command::CommandEvent, FE};
+use crate::command::CommandEvent;
+
+use super::FE;
 
 impl eframe::App for FE {
     /// Called each time the UI needs repainting, which may be many times per second.

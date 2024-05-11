@@ -1,7 +1,7 @@
 use egui_extras::{Column, TableBuilder};
 use std::{fs, fs::DirEntry, path::PathBuf};
 
-use super::super::FE;
+use super::FE;
 
 impl FE {
     // updates `path_string` and `prev_path` with current `path` content.

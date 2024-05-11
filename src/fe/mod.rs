@@ -1,11 +1,10 @@
 use eframe;
 use std::fs;
 
-use self::command::command::CommandPool;
+use super::command::CommandPool;
 
-mod command;
 mod fe;
-mod render;
+mod files;
 
 pub struct FE {
     // current dir state
@@ -15,7 +14,7 @@ pub struct FE {
     prev_path: Option<std::path::PathBuf>,
 
     // search state
-    search_active: bool,
+    search_active: bool, // TODO implement search
     search_txt: String,
 
     // commands and shortcuts

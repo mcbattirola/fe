@@ -1,3 +1,4 @@
+mod command;
 mod fe;
 
 fn main() -> eframe::Result<()> {
