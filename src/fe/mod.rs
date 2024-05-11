@@ -1,6 +1,9 @@
 use eframe;
 use std::fs;
 
+use self::command::command::CommandPool;
+
+mod command;
 mod fe;
 mod render;
 
@@ -14,6 +17,9 @@ pub struct FE {
     // search state
     search_active: bool,
     search_txt: String,
+
+    // commands and shortcuts
+    commands: CommandPool,
 }
 
 impl FE {
@@ -34,6 +40,7 @@ impl FE {
             prev_path: None,
             search_active: false,
             search_txt: "".to_owned(),
+            commands: CommandPool::new(),
         };
 
         fe.load_dir_entries();
