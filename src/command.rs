@@ -25,6 +25,7 @@ pub enum CommandEvent {
     FocusSearchBar,
     _Quit,
     DirGoBack,
+    FavoritePath,
 }
 
 impl CommandPool {
@@ -45,6 +46,11 @@ impl CommandPool {
                     event: CommandEvent::DirGoBack,
                     modifiers: Vec::from([Modifier::Cmd]),
                     key: Vec::from([egui::Key::O]),
+                },
+                Command {
+                    event: CommandEvent::FavoritePath,
+                    modifiers: Vec::from([Modifier::Cmd]),
+                    key: Vec::from([egui::Key::B]),
                 },
             ]),
             events: Vec::new(),

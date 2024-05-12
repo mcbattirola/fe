@@ -14,6 +14,10 @@ impl eframe::App for FE {
             self.go_back_path();
         }
 
+        if self.commands.get_event(CommandEvent::FavoritePath) {
+            println!("TODO: favorite current path");
+        }
+
         // Put your widgets into a `SidePanel`, `TopBottomPanel`, `CentralPanel`, `Window` or `Area`.
         // For inspiration and more examples, go to https://emilk.github.io/egui
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -67,6 +71,10 @@ impl eframe::App for FE {
                         path_input.request_focus();
                         // change path
                         self.load_dir_entries()
+                    }
+
+                    if ui.button("⭐").clicked() {
+                        println!("TODO: add {:?} to favorites", self.path_string);
                     }
                 });
 

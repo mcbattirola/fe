@@ -94,24 +94,65 @@ impl FE {
         });
     }
 
-    // draws the file and returns the PathBuf if it was clicked
     pub fn draw_file(&self, ui: &mut egui::Ui, entry: &DirEntry) -> Option<PathBuf> {
         let mut ret = None;
 
         let name = entry.file_name();
         let file_type = entry.file_type().unwrap();
         let icon = if file_type.is_dir() { "📁" } else { "📃" };
-        if file_type.is_dir() {
-            ui.label(icon);
-            if ui.link(name.to_str().unwrap().to_owned()).clicked() {
-                let mut new_path = self.path.clone();
-                new_path.push(name);
-                ret = Some(new_path);
+
+        // TODO: reuse context_menu
+
+        // Create a horizontal group for the whole row
+        let response = ui
+            .horizontal(|ui| {
+                ui.label(icon);
+                if file_type.is_dir() {
+                    let link = ui.link(&name.to_str().unwrap().to_owned());
+                    link.context_menu(|ui| {
+                        if ui.button("Open").clicked() {
+                            ui.close_menu();
+                            // Implement open functionality
+                            if file_type.is_dir() {
+                                let mut new_path = self.path.clone();
+                                new_path.push(&name);
+                                ret = Some(new_path);
+                            }
+                        }
+                        if ui.button("Properties").clicked() {
+                            ui.close_menu();
+                            // Implement properties functionality
+                        }
+                    });
+                    if link.clicked() {
+                        let mut new_path = self.path.clone();
+                        new_path.push(&name);
+                        ret = Some(new_path);
+                    }
+                    // Capture the response from the whole horizontal group
+                    ui.allocate_space(ui.available_size()); // This ensures that the rest of the row is clickable
+                } else {
+                    ui.label(name.to_str().unwrap().to_owned());
+                }
+            })
+            .response;
+
+        // Apply context menu to the entire row
+        response.context_menu(|ui| {
+            if ui.button("Open").clicked() {
+                ui.close_menu();
+                // Implement open functionality
+                if file_type.is_dir() {
+                    let mut new_path = self.path.clone();
+                    new_path.push(name);
+                    ret = Some(new_path);
+                }
             }
-        } else {
-            ui.label(icon);
-            ui.label(name.to_str().unwrap().to_owned());
-        }
+            if ui.button("Properties").clicked() {
+                ui.close_menu();
+                // TODO
+            }
+        });
 
         return ret;
     }
