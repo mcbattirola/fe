@@ -45,7 +45,6 @@ impl FE {
     }
 
     pub fn draw_files(&mut self, ui: &mut egui::Ui) {
-        ui.heading("Files");
         ui.vertical_centered(|ui| {
             let mut table = TableBuilder::new(ui)
                 .striped(true)

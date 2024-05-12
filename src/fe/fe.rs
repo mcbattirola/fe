@@ -1,3 +1,4 @@
+use directories::UserDirs;
 use std::path::PathBuf;
 
 use crate::command::CommandEvent;
@@ -82,13 +83,36 @@ impl eframe::App for FE {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
+            // egui::CentralPanel::default().frame(frame).show(ctx, |ui| {
             ctx.set_pixels_per_point(1.2);
-            self.draw_files(ui);
-            ui.add_space(30.0);
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                egui::warn_if_debug_build(ui);
-                ui.separator();
+            // left part
+            egui::SidePanel::left("left_panel")
+                .resizable(false)
+                .default_width(150.0)
+                .show_inside(ui, |ui| {
+                    egui::ScrollArea::vertical().show(ui, |ui| {
+                        ui.label("quick access");
+                        ui.separator();
+                        // TODO organize this part
+                        if ui.link("🏠 Home").clicked() {
+                            if home::home_dir().is_some() {
+                                self.set_path(home::home_dir().unwrap());
+                            }
+                        };
+                        if ui.link("📺 Desktop").clicked() {
+                            if let Some(user_dirs) = UserDirs::new() {
+                                self.set_path(user_dirs.desktop_dir().unwrap().to_path_buf());
+                            }
+                        }
+                    });
+                });
+
+            // right part
+            egui::CentralPanel::default().show_inside(ui, |ui| {
+                self.draw_files(ui);
             });
+
+            // ui.add_space(30.0);
         });
     }
 }
