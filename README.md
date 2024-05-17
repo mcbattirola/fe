@@ -9,7 +9,8 @@ WIP
   - [x] Go to previous dir
 - [x] Click to go to directory
 - [ ] Image preview
-- [ ] Pinned / Favorite
+- [ ] Run executables
+- [ ] Pinned / Favorites
 - [ ] New Tabs
 - [ ] Shortcuts
   - [x] Ctrl + L -> move cursor to path
