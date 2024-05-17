@@ -122,10 +122,12 @@ pub fn draw_file(ui: &mut egui::Ui, entry: &DirEntry, current_path: PathBuf) -> 
                     ret = Some(new_path);
                 }
                 // Capture the response from the whole horizontal group
-                ui.allocate_space(ui.available_size()); // This ensures that the rest of the row is clickable
             } else {
-                ui.label(name.to_str().unwrap().to_owned());
+                ui.label(name.to_str().unwrap().to_owned()).context_menu(|ui| {
+                    ret = get_file_context_menu(ui, file_type, name.clone(), current_path.clone());
+                });
             }
+            ui.allocate_space(ui.available_size()); // This ensures that the rest of the row is clickable
         })
         .response;
 
@@ -133,6 +135,10 @@ pub fn draw_file(ui: &mut egui::Ui, entry: &DirEntry, current_path: PathBuf) -> 
     response.context_menu(|ui| {
         ret = get_file_context_menu(ui, file_type, name.clone(), current_path.clone());
     });
+
+    if response.hovered() {;
+        // TODO: highlight row
+    }
 
     return ret;
 }
@@ -144,7 +150,6 @@ pub fn get_file_context_menu(
     current_path: PathBuf,
 ) -> Option<PathBuf> {
     let mut ret = None;
-    println!("contexct menu for {:?}", file_name);
     if ui.button("Open").clicked() {
         ui.close_menu();
         // Implement open functionality
