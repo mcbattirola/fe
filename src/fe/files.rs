@@ -1,5 +1,5 @@
 use egui::Ui;
-use egui_extras::{Column, TableBuilder};
+use egui_extras::{Column, TableBody, TableBuilder};
 use std::{
     ffi::OsString,
     fs::{self, DirEntry},
@@ -55,6 +55,7 @@ impl FE {
                 .striped(true)
                 .resizable(false)
                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+                .column(Column::auto())
                 .column(Column::remainder())
                 .min_scrolled_height(0.0)
                 .max_scroll_height(600.0);
@@ -65,6 +66,9 @@ impl FE {
                 .header(20.0, |mut header| {
                     header.col(|ui| {
                         ui.strong("Name");
+                    });
+                    header.col(|ui| {
+                        ui.strong("Size");
                     });
                 })
                 .body(|mut body| {
@@ -77,16 +81,14 @@ impl FE {
                                 self.load_dir_entries()
                             }
                         });
+                        row.col(|ui| {
+                            ui.label("");
+                        });
                     });
 
                     let mut new_path = None;
                     for entry in &self.entries {
-                        body.row(16.0, |mut row| {
-                            row.col(|ui| {
-                                // draw file, stores the new PathBuf returned when some dir is clicked
-                                new_path = draw_file(ui, &entry, self.path.clone())
-                            });
-                        });
+                        new_path = draw_file_row(&mut body, entry, self.path.clone());
                     }
 
                     if let Some(path) = new_path {
@@ -97,7 +99,29 @@ impl FE {
     }
 }
 
-pub fn draw_file(ui: &mut egui::Ui, entry: &DirEntry, current_path: PathBuf) -> Option<PathBuf> {
+pub fn draw_file_row(
+    body: &mut TableBody,
+    entry: &DirEntry,
+    current_path: PathBuf,
+) -> Option<PathBuf> {
+    let mut ret = None;
+    body.row(16.0, |mut row| {
+        row.col(|ui| {
+            ret = draw_file_name_cell(ui, &entry, current_path.clone());
+        });
+        row.col(|ui| {
+            ret = draw_file_size_cell(ui, &entry, current_path.clone());
+        });
+    });
+
+    return ret;
+}
+
+pub fn draw_file_name_cell(
+    ui: &mut egui::Ui,
+    entry: &DirEntry,
+    current_path: PathBuf,
+) -> Option<PathBuf> {
     let mut ret = None;
 
     let name = entry.file_name().to_owned();
@@ -105,13 +129,13 @@ pub fn draw_file(ui: &mut egui::Ui, entry: &DirEntry, current_path: PathBuf) -> 
     let icon = if file_type.is_dir() { "📁" } else { "📃" };
 
     // Create a horizontal group for the whole row
-    let response = ui
+    let cell_area = ui
         .horizontal(|ui| {
             ui.label(icon);
             if file_type.is_dir() {
                 let link = ui.link(&name.to_str().unwrap().to_owned());
                 link.context_menu(|ui| {
-                    ret = get_file_context_menu(ui, file_type, name.clone(), current_path.clone());
+                    ret = get_file_context_menu(ui, file_type, &name, &current_path);
                 });
                 if link.clicked() {
                     let mut new_path = current_path.clone();
@@ -122,26 +146,52 @@ pub fn draw_file(ui: &mut egui::Ui, entry: &DirEntry, current_path: PathBuf) -> 
             } else {
                 ui.label(name.to_str().unwrap().to_owned())
                     .context_menu(|ui| {
-                        ret = get_file_context_menu(
-                            ui,
-                            file_type,
-                            name.clone(),
-                            current_path.clone(),
-                        );
+                        ret = get_file_context_menu(ui, file_type, &name, &current_path);
                     });
             }
-            ui.allocate_space(ui.available_size()); // This ensures that the rest of the row is clickable
+            ui.allocate_space(ui.available_size());
         })
         .response;
 
     // Apply context menu to the entire row
-    response.context_menu(|ui| {
-        ret = get_file_context_menu(ui, file_type, name.clone(), current_path.clone());
+    cell_area.context_menu(|ui| {
+        ret = get_file_context_menu(ui, file_type, &name, &current_path);
     });
 
-    if response.hovered() {
+    if cell_area.hovered() {
         // TODO: highlight row
     }
+
+    return ret;
+}
+
+pub fn draw_file_size_cell(
+    ui: &mut egui::Ui,
+    entry: &DirEntry,
+    current_path: PathBuf,
+) -> Option<PathBuf> {
+    let mut ret = None;
+    let name = entry.file_name().to_owned();
+    let file_type = entry.file_type().unwrap();
+    let size = entry.metadata().unwrap().len();
+
+    let cell_area = ui
+        .horizontal(|ui| {
+            if file_type.is_dir() {
+                ui.label("");
+            } else {
+                // TODO: format size
+                ui.label(size.to_string()).context_menu(|ui| {
+                    ret = get_file_context_menu(ui, file_type, &name, &current_path);
+                });
+            }
+            ui.allocate_space(ui.available_size());
+        })
+        .response;
+
+    cell_area.context_menu(|ui| {
+        ret = get_file_context_menu(ui, file_type, &name, &current_path);
+    });
 
     return ret;
 }
@@ -149,8 +199,8 @@ pub fn draw_file(ui: &mut egui::Ui, entry: &DirEntry, current_path: PathBuf) -> 
 pub fn get_file_context_menu(
     ui: &mut Ui,
     file_type: fs::FileType,
-    file_name: OsString,
-    current_path: PathBuf,
+    file_name: &OsString,
+    current_path: &PathBuf,
 ) -> Option<PathBuf> {
     let mut ret = None;
     if ui.button("Open").clicked() {
