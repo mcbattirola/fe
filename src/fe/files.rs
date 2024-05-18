@@ -107,10 +107,10 @@ pub fn draw_file_row(
     let mut ret = None;
     body.row(16.0, |mut row| {
         row.col(|ui| {
-            ret = draw_file_name_cell(ui, &entry, current_path.clone());
+            ret = draw_file_name_cell(ui, &entry, &current_path);
         });
         row.col(|ui| {
-            ret = draw_file_size_cell(ui, &entry, current_path.clone());
+            ret = draw_file_size_cell(ui, &entry, &current_path);
         });
     });
 
@@ -120,7 +120,7 @@ pub fn draw_file_row(
 pub fn draw_file_name_cell(
     ui: &mut egui::Ui,
     entry: &DirEntry,
-    current_path: PathBuf,
+    current_path: &PathBuf,
 ) -> Option<PathBuf> {
     let mut ret = None;
 
@@ -146,7 +146,7 @@ pub fn draw_file_name_cell(
             } else {
                 ui.label(name.to_str().unwrap().to_owned())
                     .context_menu(|ui| {
-                        ret = get_file_context_menu(ui, file_type, &name, &current_path);
+                        ret = get_file_context_menu(ui, file_type, &name, current_path);
                     });
             }
             ui.allocate_space(ui.available_size());
@@ -155,7 +155,7 @@ pub fn draw_file_name_cell(
 
     // Apply context menu to the entire row
     cell_area.context_menu(|ui| {
-        ret = get_file_context_menu(ui, file_type, &name, &current_path);
+        ret = get_file_context_menu(ui, file_type, &name, current_path);
     });
 
     if cell_area.hovered() {
@@ -168,7 +168,7 @@ pub fn draw_file_name_cell(
 pub fn draw_file_size_cell(
     ui: &mut egui::Ui,
     entry: &DirEntry,
-    current_path: PathBuf,
+    current_path: &PathBuf,
 ) -> Option<PathBuf> {
     let mut ret = None;
     let name = entry.file_name().to_owned();
@@ -182,7 +182,7 @@ pub fn draw_file_size_cell(
             } else {
                 // TODO: format size
                 ui.label(size.to_string()).context_menu(|ui| {
-                    ret = get_file_context_menu(ui, file_type, &name, &current_path);
+                    ret = get_file_context_menu(ui, file_type, &name, current_path);
                 });
             }
             ui.allocate_space(ui.available_size());
@@ -190,7 +190,7 @@ pub fn draw_file_size_cell(
         .response;
 
     cell_area.context_menu(|ui| {
-        ret = get_file_context_menu(ui, file_type, &name, &current_path);
+        ret = get_file_context_menu(ui, file_type, &name, current_path);
     });
 
     return ret;
