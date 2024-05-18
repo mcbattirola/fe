@@ -21,6 +21,9 @@ pub struct FE {
 
     // commands and shortcuts
     commands: CommandPool,
+
+    // styles
+    row_height: f32,
 }
 
 impl FE {
@@ -36,6 +39,7 @@ impl FE {
             _search_active: false,
             search_txt: "".to_owned(),
             commands: CommandPool::new(),
+            row_height: 16.0,
         };
 
         fe.load_dir_entries();

@@ -56,7 +56,6 @@ impl FE {
                 .resizable(false)
                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                 .column(Column::remainder())
-                // .column(Column::remainder())
                 .min_scrolled_height(0.0)
                 .max_scroll_height(600.0);
 
@@ -70,7 +69,7 @@ impl FE {
                 })
                 .body(|mut body| {
                     // add the '..' to go back one level
-                    body.row(16.0, |mut row| {
+                    body.row(self.row_height, |mut row| {
                         row.col(|ui| {
                             ui.label("📁");
                             if ui.link("..").clicked() {
@@ -85,9 +84,7 @@ impl FE {
                         body.row(16.0, |mut row| {
                             row.col(|ui| {
                                 // draw file, stores the new PathBuf returned when some dir is clicked
-                                if let Some(path) = draw_file(ui, &entry, self.path.clone()) {
-                                    new_path = Some(path);
-                                }
+                                new_path = draw_file(ui, &entry, self.path.clone())
                             });
                         });
                     }
@@ -123,9 +120,15 @@ pub fn draw_file(ui: &mut egui::Ui, entry: &DirEntry, current_path: PathBuf) -> 
                 }
                 // Capture the response from the whole horizontal group
             } else {
-                ui.label(name.to_str().unwrap().to_owned()).context_menu(|ui| {
-                    ret = get_file_context_menu(ui, file_type, name.clone(), current_path.clone());
-                });
+                ui.label(name.to_str().unwrap().to_owned())
+                    .context_menu(|ui| {
+                        ret = get_file_context_menu(
+                            ui,
+                            file_type,
+                            name.clone(),
+                            current_path.clone(),
+                        );
+                    });
             }
             ui.allocate_space(ui.available_size()); // This ensures that the rest of the row is clickable
         })
@@ -136,7 +139,7 @@ pub fn draw_file(ui: &mut egui::Ui, entry: &DirEntry, current_path: PathBuf) -> 
         ret = get_file_context_menu(ui, file_type, name.clone(), current_path.clone());
     });
 
-    if response.hovered() {;
+    if response.hovered() {
         // TODO: highlight row
     }
 
