@@ -27,3 +27,9 @@ WIP
 - [ ] Drag and drop files from/to explorer
 - [ ] Search Bar
 - [ ] Expand env vars
+- [ ] Files view
+  - [ ] Show additional info
+    - [ ] Show date
+    - [ ] Perms
+    - [ ] Size
+  - [ ] Select order
