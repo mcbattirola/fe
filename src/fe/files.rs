@@ -53,6 +53,13 @@ impl FE {
         }
     }
 
+    // update the sorting without reloading files from the file system
+    pub fn update_sorting(&mut self, sort: DirSorting) {
+        self.dir_sorting = sort;
+        self.entries
+            .sort_by(|a, b| utils::dir::compare_entries(a, b, &self.dir_sorting));
+    }
+
     // drawing
     pub fn draw_files(&mut self, ui: &mut egui::Ui) {
         ui.vertical_centered(|ui| {
@@ -77,13 +84,14 @@ impl FE {
                             // otherwise, sort by name down
                             match &self.dir_sorting {
                                 DirSorting::FileNameAlphabetically(dir) => {
-                                    self.dir_sorting =
-                                        DirSorting::FileNameAlphabetically(dir.toggle());
-                                    self.load_dir_entries();
+                                    self.update_sorting(DirSorting::FileNameAlphabetically(
+                                        dir.toggle(),
+                                    ));
                                 }
                                 _ => {
-                                    self.dir_sorting =
-                                        DirSorting::FileNameAlphabetically(SortOrder::Asc)
+                                    self.update_sorting(DirSorting::FileNameAlphabetically(
+                                        SortOrder::Asc,
+                                    ));
                                 }
                             }
                         }
@@ -93,10 +101,9 @@ impl FE {
                         if ui.button(self.dir_sorting.get_sort_icon()).clicked() {
                             match &self.dir_sorting {
                                 DirSorting::FileSize(dir) => {
-                                    self.dir_sorting = DirSorting::FileSize(dir.toggle());
-                                    self.load_dir_entries();
+                                    self.update_sorting(DirSorting::FileSize(dir.toggle()))
                                 }
-                                _ => self.dir_sorting = DirSorting::FileSize(SortOrder::Asc),
+                                _ => self.update_sorting(DirSorting::FileSize(SortOrder::Asc)),
                             }
                         }
                     });

@@ -60,8 +60,7 @@ pub fn compare_entries(a: &fs::DirEntry, b: &fs::DirEntry, sorting: &DirSorting)
                 let a_size = a.metadata().map(|m| m.len()).unwrap_or(0);
                 let b_size = b.metadata().map(|m| m.len()).unwrap_or(0);
                 b_size.cmp(&a_size)
-            }
-            // _ => Ordering::Equal,
+            } // _ => Ordering::Equal,
         },
     };
 
