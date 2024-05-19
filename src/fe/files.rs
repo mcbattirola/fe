@@ -1,4 +1,4 @@
-use egui::Ui;
+use egui::{Response, Ui};
 use egui_extras::{Column, TableBody, TableBuilder};
 use std::{
     ffi::OsString,
@@ -72,45 +72,68 @@ impl FE {
                     });
                 })
                 .body(|mut body| {
-                    // add the '..' to go back one level
-                    body.row(self.row_height, |mut row| {
-                        row.col(|ui| {
-                            ui.label("📁");
-                            if ui.link("..").clicked() {
-                                self.set_path(self.path.parent().unwrap().to_path_buf());
-                                self.load_dir_entries()
-                            }
-                        });
-                        row.col(|ui| {
-                            ui.label("");
-                        });
-                    });
+                    let mut new_path =
+                        draw_back_dir_row(&mut body, self.path.clone(), self.row_height);
 
-                    let mut new_path = None;
                     for entry in &self.entries {
-                        new_path = draw_file_row(&mut body, entry, self.path.clone());
+                        match draw_file_row(&mut body, entry, self.path.clone(), self.row_height) {
+                            Some(path) => new_path = Some(path),
+                            None => (),
+                        }
                     }
 
                     if let Some(path) = new_path {
                         self.set_path(path);
+                        self.load_dir_entries();
                     }
                 });
         });
     }
 }
 
+pub fn draw_back_dir_row(
+    body: &mut TableBody,
+    current_path: PathBuf,
+    row_height: f32,
+) -> Option<PathBuf> {
+    let mut ret = None;
+
+    body.row(row_height, |mut row| {
+        row.col(|ui| {
+            cell(ui, |ui| {
+                ui.label("📁");
+                if ui.link("..").clicked() {
+                    ret = Some(current_path.parent().unwrap().to_path_buf());
+                }
+            })
+            .context_menu(|ui| {
+                get_file_context_menu(ui, true, &OsString::from("..".to_string()), &current_path);
+            });
+        });
+        row.col(|ui| {
+            cell(ui, |ui| {
+                ui.label("");
+            });
+        });
+    });
+    return ret;
+}
+
 pub fn draw_file_row(
     body: &mut TableBody,
     entry: &DirEntry,
     current_path: PathBuf,
+    row_height: f32,
 ) -> Option<PathBuf> {
     let mut ret = None;
-    body.row(16.0, |mut row| {
-        row.col(|ui| {
-            ret = draw_file_name_cell(ui, &entry, &current_path);
+    body.row(row_height, |mut row| {
+        row.col(|ui| match draw_file_name_cell(ui, &entry, &current_path) {
+            Some(path) => ret = Some(path),
+            None => (),
         });
-        row.col(|ui| {
-            ret = draw_file_size_cell(ui, &entry, &current_path);
+        row.col(|ui| match draw_file_size_cell(ui, &entry, &current_path) {
+            Some(path) => ret = Some(path),
+            None => (),
         });
     });
 
@@ -128,39 +151,39 @@ pub fn draw_file_name_cell(
     let file_type = entry.file_type().unwrap();
     let icon = if file_type.is_dir() { "📁" } else { "📃" };
 
-    // Create a horizontal group for the whole row
-    let cell_area = ui
-        .horizontal(|ui| {
-            ui.label(icon);
-            if file_type.is_dir() {
-                let link = ui.link(&name.to_str().unwrap().to_owned());
-                link.context_menu(|ui| {
-                    ret = get_file_context_menu(ui, file_type, &name, &current_path);
-                });
-                if link.clicked() {
-                    let mut new_path = current_path.clone();
-                    new_path.push(&name.clone());
-                    ret = Some(new_path);
+    cell(ui, |ui| {
+        ui.label(icon);
+        if file_type.is_dir() {
+            let link = ui.link(&name.to_str().unwrap().to_owned());
+            link.context_menu(|ui| {
+                match get_file_context_menu(ui, file_type.is_dir(), &name, &current_path) {
+                    Some(path) => ret = Some(path),
+                    None => (),
                 }
-                // Capture the response from the whole horizontal group
-            } else {
-                ui.label(name.to_str().unwrap().to_owned())
-                    .context_menu(|ui| {
-                        ret = get_file_context_menu(ui, file_type, &name, current_path);
-                    });
+            });
+            if link.clicked() {
+                let mut new_path = current_path.clone();
+                new_path.push(&name.clone());
+                ret = Some(new_path);
+                println!("ret = {:?}", ret);
             }
-            ui.allocate_space(ui.available_size());
-        })
-        .response;
-
-    // Apply context menu to the entire row
-    cell_area.context_menu(|ui| {
-        ret = get_file_context_menu(ui, file_type, &name, current_path);
+        } else {
+            ui.label(name.to_str().unwrap().to_owned())
+                .context_menu(|ui| {
+                    match get_file_context_menu(ui, file_type.is_dir(), &name, current_path) {
+                        Some(path) => ret = Some(path),
+                        None => (),
+                    };
+                });
+        }
+        ui.allocate_space(ui.available_size());
+    })
+    .context_menu(|ui| {
+        match get_file_context_menu(ui, file_type.is_dir(), &name, current_path) {
+            Some(path) => ret = Some(path),
+            None => (),
+        };
     });
-
-    if cell_area.hovered() {
-        // TODO: highlight row
-    }
 
     return ret;
 }
@@ -175,22 +198,25 @@ pub fn draw_file_size_cell(
     let file_type = entry.file_type().unwrap();
     let size = entry.metadata().unwrap().len();
 
-    let cell_area = ui
-        .horizontal(|ui| {
-            if file_type.is_dir() {
-                ui.label("");
-            } else {
-                // TODO: format size
-                ui.label(size.to_string()).context_menu(|ui| {
-                    ret = get_file_context_menu(ui, file_type, &name, current_path);
-                });
-            }
-            ui.allocate_space(ui.available_size());
-        })
-        .response;
-
-    cell_area.context_menu(|ui| {
-        ret = get_file_context_menu(ui, file_type, &name, current_path);
+    cell(ui, |ui| {
+        if file_type.is_dir() {
+            ui.label("");
+        } else {
+            // TODO: format size
+            ui.label(size.to_string()).context_menu(|ui| {
+                match get_file_context_menu(ui, file_type.is_dir(), &name, current_path) {
+                    Some(path) => ret = Some(path),
+                    None => (),
+                };
+            });
+        }
+        ui.allocate_space(ui.available_size());
+    })
+    .context_menu(|ui| {
+        match get_file_context_menu(ui, file_type.is_dir(), &name, current_path) {
+            Some(path) => ret = Some(path),
+            None => (),
+        };
     });
 
     return ret;
@@ -198,15 +224,20 @@ pub fn draw_file_size_cell(
 
 pub fn get_file_context_menu(
     ui: &mut Ui,
-    file_type: fs::FileType,
+    is_dir: bool,
     file_name: &OsString,
     current_path: &PathBuf,
 ) -> Option<PathBuf> {
+    // TODO: have a dir-wide context menu items
+    // and concatanate it file menu items to
+    // create the final context menu.
+    // When clicking in the table but not on any file
+    // we can show the dir menu only.
     let mut ret = None;
-    if ui.button("Open").clicked() {
-        ui.close_menu();
-        // Implement open functionality
-        if file_type.is_dir() {
+    if is_dir {
+        if ui.button("Open").clicked() {
+            ui.close_menu();
+            // Implement open functionality
             let mut new_path = current_path.clone();
             new_path.push(&file_name);
             ret = Some(new_path);
@@ -218,4 +249,8 @@ pub fn get_file_context_menu(
     }
 
     return ret;
+}
+
+pub fn cell<R>(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) -> Response {
+    ui.horizontal(add_contents).response
 }
