@@ -1,3 +1,4 @@
+use crate::utils::dir::{DirSorting, SortOrder};
 use egui::{Response, Ui};
 use egui_extras::{Column, TableBody, TableBuilder};
 use std::{
@@ -5,6 +6,8 @@ use std::{
     fs::{self, DirEntry},
     path::PathBuf,
 };
+
+use crate::utils;
 
 use super::FE;
 
@@ -41,6 +44,7 @@ impl FE {
                     entries.push(entry);
                 }
 
+                entries.sort_by(|a, b| utils::dir::compare_entries(a, b, &self.dir_sorting));
                 self.entries = entries;
             }
             Err(err) => {
@@ -49,6 +53,7 @@ impl FE {
         }
     }
 
+    // drawing
     pub fn draw_files(&mut self, ui: &mut egui::Ui) {
         ui.vertical_centered(|ui| {
             let mut table = TableBuilder::new(ui)
@@ -66,9 +71,34 @@ impl FE {
                 .header(20.0, |mut header| {
                     header.col(|ui| {
                         ui.strong("Name");
+
+                        if ui.button(self.dir_sorting.get_sort_icon()).clicked() {
+                            // if currently sorting by name, toggle it
+                            // otherwise, sort by name down
+                            match &self.dir_sorting {
+                                DirSorting::FileNameAlphabetically(dir) => {
+                                    self.dir_sorting =
+                                        DirSorting::FileNameAlphabetically(dir.toggle());
+                                    self.load_dir_entries();
+                                }
+                                _ => {
+                                    self.dir_sorting =
+                                        DirSorting::FileNameAlphabetically(SortOrder::Asc)
+                                }
+                            }
+                        }
                     });
                     header.col(|ui| {
                         ui.strong("Size");
+                        if ui.button(self.dir_sorting.get_sort_icon()).clicked() {
+                            match &self.dir_sorting {
+                                DirSorting::FileSize(dir) => {
+                                    self.dir_sorting = DirSorting::FileSize(dir.toggle());
+                                    self.load_dir_entries();
+                                }
+                                _ => self.dir_sorting = DirSorting::FileSize(SortOrder::Asc),
+                            }
+                        }
                     });
                 })
                 .body(|mut body| {
@@ -84,7 +114,6 @@ impl FE {
 
                     if let Some(path) = new_path {
                         self.set_path(path);
-                        self.load_dir_entries();
                     }
                 });
         });
@@ -203,12 +232,13 @@ pub fn draw_file_size_cell(
             ui.label("");
         } else {
             // TODO: format size
-            ui.label(size.to_string()).context_menu(|ui| {
-                match get_file_context_menu(ui, file_type.is_dir(), &name, current_path) {
-                    Some(path) => ret = Some(path),
-                    None => (),
-                };
-            });
+            ui.label(utils::human_readable_size(size).to_string())
+                .context_menu(|ui| {
+                    match get_file_context_menu(ui, file_type.is_dir(), &name, current_path) {
+                        Some(path) => ret = Some(path),
+                        None => (),
+                    };
+                });
         }
         ui.allocate_space(ui.available_size());
     })

@@ -4,7 +4,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use crate::command::{CommandEvent, CommandPool};
-
+use crate::utils::dir::{DirSorting, SortOrder};
 mod files;
 
 pub struct FE {
@@ -13,6 +13,7 @@ pub struct FE {
     path_string: String,
     entries: Vec<fs::DirEntry>,
     prev_path: Option<std::path::PathBuf>,
+    dir_sorting: DirSorting,
 
     // search state
     // TODO use an Option<String> as search instead of String + bool
@@ -36,6 +37,7 @@ impl FE {
             path_string: dir_clone.to_str().unwrap().to_owned(),
             entries: Vec::new(),
             prev_path: None,
+            dir_sorting: DirSorting::FileNameAlphabetically(SortOrder::Desc),
             _search_active: false,
             search_txt: "".to_owned(),
             commands: CommandPool::new(),

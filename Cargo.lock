@@ -1220,6 +1220,7 @@ dependencies = [
  "egui",
  "egui_extras",
  "home",
+ "tempfile",
 ]
 
 [[package]]
