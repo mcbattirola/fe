@@ -22,14 +22,17 @@ WIP
   - [ ] Open terminal here
   - [ ] Copy/paste files
   - [ ] Delete file
+  - [ ] File Properties
 - [ ] User scripts
     - [ ] Context menu custom commands/script
 - [ ] Drag and drop files from/to explorer
 - [ ] Search Bar
-- [ ] Expand env vars
+- [ ] Expand env vars in search and path bar
 - [ ] Files view
   - [ ] Show additional info
     - [ ] Show date
     - [ ] Perms
     - [ ] Size
   - [ ] Select order
+  - [ ] Show/hide dot files
+  - [ ] Show/hide git ignored files
