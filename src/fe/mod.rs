@@ -1,10 +1,13 @@
 use directories::UserDirs;
 use eframe;
+use egui::{Color32, Response, Sense, Stroke, Ui};
 use std::fs;
 use std::path::PathBuf;
 
 use crate::command::{CommandEvent, CommandPool};
 use crate::utils::dir::{DirSorting, SortOrder};
+
+use self::files::get_current_dir_context_menu;
 mod files;
 
 pub struct FE {
@@ -176,9 +179,24 @@ impl eframe::App for FE {
             // right part
             egui::CentralPanel::default().show_inside(ui, |ui| {
                 self.draw_files(ui);
+                // Create an invisible panel to handle the right-click
+                fill_remainder(ui).context_menu(|ui| {
+                    get_current_dir_context_menu(ui);
+                });
             });
-
-            // ui.add_space(30.0);
         });
     }
+}
+
+// fills the remainder of the panel with an invisible rect capable
+// of detecting clicks.
+fn fill_remainder(ui: &mut Ui) -> Response {
+    let rect = ui.available_rect_before_wrap();
+    // in debug, draw the rect outline
+    if cfg!(debug_assertions) {
+        // TODO: use a custom flag to enable extra debug things like this
+        let painter = ui.painter();
+        painter.rect_stroke(rect, 0.0, Stroke::new(0.2, Color32::LIGHT_BLUE));
+    }
+    return ui.allocate_rect(rect, Sense::click());
 }

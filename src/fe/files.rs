@@ -62,7 +62,7 @@ impl FE {
 
     // drawing
     pub fn draw_files(&mut self, ui: &mut egui::Ui) {
-        ui.vertical_centered(|ui| {
+        ui.vertical(|ui| {
             let mut table = TableBuilder::new(ui)
                 .striped(true)
                 .resizable(false)
@@ -284,8 +284,20 @@ pub fn get_file_context_menu(
         ui.close_menu();
         // TODO
     }
+    ui.separator();
+    get_current_dir_context_menu(ui);
 
     return ret;
+}
+
+// context menu for the dir currently being browsed
+pub fn get_current_dir_context_menu(ui: &mut Ui) {
+    if ui.button("New File").clicked() {
+        println!("TODO: new file");
+    }
+    if ui.button("Open Terminal").clicked() {
+        println!("TODO: open terminal");
+    }
 }
 
 pub fn cell<R>(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) -> Response {
