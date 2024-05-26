@@ -1,6 +1,6 @@
 use directories::UserDirs;
 use eframe;
-use egui::{Color32, Response, Sense, Stroke, Ui};
+use egui::{Response, Sense, Ui};
 use std::path::PathBuf;
 
 use crate::command::{CommandEvent, CommandPool};
@@ -191,11 +191,5 @@ impl eframe::App for FE {
 // of detecting clicks.
 fn fill_remainder(ui: &mut Ui) -> Response {
     let rect = ui.available_rect_before_wrap();
-    // in debug, draw the rect outline
-    if cfg!(debug_assertions) {
-        // TODO: use a custom flag to enable extra debug things like this
-        let painter = ui.painter();
-        painter.rect_stroke(rect, 0.0, Stroke::new(0.2, Color32::LIGHT_BLUE));
-    }
     return ui.allocate_rect(rect, Sense::click());
 }
