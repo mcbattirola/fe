@@ -4,7 +4,6 @@ use crate::utils::dir::{fs_to_fe_entry, DirSorting, FeEntry, SortOrder};
 use egui::{Response, Ui};
 use egui_extras::{Column, TableBody, TableBuilder};
 use std::{
-    ffi::OsString,
     fs::{self},
     path::PathBuf,
 };
@@ -112,7 +111,7 @@ impl FE {
                         draw_back_dir_row(&mut body, self.path.clone(), self.row_height);
 
                     for entry in &self.entries {
-                        match draw_file_row(&mut body, entry, self.path.clone(), self.row_height) {
+                        match draw_file_row(&mut body, entry, self.row_height) {
                             Some(path) => new_path = Some(path),
                             None => (),
                         }
@@ -137,22 +136,21 @@ pub fn draw_back_dir_row(
         is_dir: true,
         size: 0,
     };
-    return draw_file_row(body, &entry, current_path, row_height);
+    return draw_file_row(body, &entry, row_height);
 }
 
 pub fn draw_file_row(
     body: &mut TableBody,
     entry: &FeEntry,
-    current_path: PathBuf,
     row_height: f32,
 ) -> Option<PathBuf> {
     let mut ret = None;
     body.row(row_height, |mut row| {
-        row.col(|ui| match draw_file_name_cell(ui, &entry, &current_path) {
+        row.col(|ui| match draw_file_name_cell(ui, &entry) {
             Some(path) => ret = Some(path),
             None => (),
         });
-        row.col(|ui| match draw_file_size_cell(ui, &entry, &current_path) {
+        row.col(|ui| match draw_file_size_cell(ui, &entry) {
             Some(path) => ret = Some(path),
             None => (),
         });
@@ -164,7 +162,6 @@ pub fn draw_file_row(
 pub fn draw_file_name_cell(
     ui: &mut egui::Ui,
     entry: &FeEntry,
-    current_path: &PathBuf,
 ) -> Option<PathBuf> {
     let mut ret = None;
 
@@ -176,7 +173,7 @@ pub fn draw_file_name_cell(
         if entry.is_dir {
             let link = ui.link(&name.to_str().unwrap().to_owned());
             link.context_menu(|ui| {
-                match get_file_context_menu(ui, entry.is_dir, &name, &current_path) {
+                match get_file_context_menu(ui, entry) {
                     Some(path) => ret = Some(path),
                     None => (),
                 }
@@ -188,7 +185,7 @@ pub fn draw_file_name_cell(
         } else {
             ui.label(name.to_str().unwrap().to_owned())
                 .context_menu(|ui| {
-                    match get_file_context_menu(ui, entry.is_dir, &name, current_path) {
+                    match get_file_context_menu(ui, entry) {
                         Some(path) => ret = Some(path),
                         None => (),
                     };
@@ -197,7 +194,7 @@ pub fn draw_file_name_cell(
         ui.allocate_space(ui.available_size());
     })
     .context_menu(|ui| {
-        match get_file_context_menu(ui, entry.is_dir, &name, current_path) {
+        match get_file_context_menu(ui, entry) {
             Some(path) => ret = Some(path),
             None => (),
         };
@@ -209,10 +206,8 @@ pub fn draw_file_name_cell(
 pub fn draw_file_size_cell(
     ui: &mut egui::Ui,
     entry: &FeEntry,
-    current_path: &PathBuf,
 ) -> Option<PathBuf> {
     let mut ret = None;
-    let name = entry.name.to_owned();
 
     cell(ui, |ui| {
         if entry.is_dir {
@@ -220,7 +215,7 @@ pub fn draw_file_size_cell(
         } else {
             ui.label(utils::human_readable_size(entry.size).to_string())
                 .context_menu(|ui| {
-                    match get_file_context_menu(ui, entry.is_dir, &name, current_path) {
+                    match get_file_context_menu(ui, entry) {
                         Some(path) => ret = Some(path),
                         None => (),
                     };
@@ -229,7 +224,7 @@ pub fn draw_file_size_cell(
         ui.allocate_space(ui.available_size());
     })
     .context_menu(|ui| {
-        match get_file_context_menu(ui, entry.is_dir, &name, current_path) {
+        match get_file_context_menu(ui, entry) {
             Some(path) => ret = Some(path),
             None => (),
         };
@@ -240,18 +235,13 @@ pub fn draw_file_size_cell(
 
 pub fn get_file_context_menu(
     ui: &mut Ui,
-    is_dir: bool,
-    file_name: &OsString,
-    current_path: &PathBuf,
+    entry: &FeEntry,
 ) -> Option<PathBuf> {
     let mut ret = None;
-    if is_dir {
+    if entry.is_dir {
         if ui.button("Open").clicked() {
             ui.close_menu();
-            // Implement open functionality
-            let mut new_path = current_path.clone();
-            new_path.push(&file_name);
-            ret = Some(new_path);
+            ret = Some(entry.path.clone());
         }
     }
     if ui.button("Properties").clicked() {
