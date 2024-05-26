@@ -41,9 +41,10 @@ impl FE {
                     let entry = fs_to_fe_entry(entry.unwrap()).unwrap();
                     entries.push(entry);
                 }
-
-                entries.sort_by(|a, b| utils::dir::compare_entries(a, b, &self.dir_sorting));
                 self.entries = entries;
+
+                // apply sorting
+                self.update_sorting(self.dir_sorting.clone());
             }
             Err(err) => {
                 println!("error reading entries: {:?}", err)
@@ -219,7 +220,6 @@ pub fn draw_file_size_cell(
         if entry.is_dir {
             ui.label("");
         } else {
-            // TODO: format size
             ui.label(utils::human_readable_size(entry.size).to_string())
                 .context_menu(|ui| {
                     match get_file_context_menu(ui, entry.is_dir, &name, current_path) {
