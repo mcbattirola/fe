@@ -27,6 +27,9 @@ pub struct FE {
 
     // styles
     row_height: f32,
+
+    creating_file: bool,
+    new_file_name: String,
 }
 
 impl FE {
@@ -44,6 +47,8 @@ impl FE {
             search_txt: "".to_owned(),
             commands: CommandPool::new(),
             row_height: 16.0,
+            creating_file: false,
+            new_file_name: "".to_owned(),
         };
 
         fe.load_dir_entries();
@@ -71,16 +76,7 @@ impl FE {
 
 impl eframe::App for FE {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        self.commands.update(ctx);
-
-        if self.commands.get_event(CommandEvent::DirGoBack) {
-            self.go_back_path();
-        }
-
-        if self.commands.get_event(CommandEvent::FavoritePath) {
-            println!("TODO: favorite current path");
-        }
-
+        self.commands.emit_input_events(ctx);
         // menu bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
@@ -153,7 +149,7 @@ impl eframe::App for FE {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            // left part
+            // left part, pinned dirs
             egui::SidePanel::left("left_panel")
                 .resizable(false)
                 .default_width(150.0)
@@ -175,15 +171,85 @@ impl eframe::App for FE {
                     });
                 });
 
-            // right part
+            // right part, file list
             egui::CentralPanel::default().show_inside(ui, |ui| {
                 self.draw_files(ui);
                 // Create an invisible panel to handle the right-click
                 fill_remainder(ui).context_menu(|ui| {
-                    get_current_dir_context_menu(ui);
+                    match get_current_dir_context_menu(ui) {
+                        Some(cmd) => self.commands.emit_event(cmd),
+                        None => (),
+                    };
                 });
             });
         });
+
+        if self.creating_file {
+            let window = egui::Window::new("new_file_window")
+                .title_bar(false)
+                .resizable(false)
+                .constrain(true)
+                .collapsible(false);
+
+            window.show(ctx, |ui| {
+                ui.vertical(|ui| {
+                    ui.spacing_mut().item_spacing.y = 4.0;
+                    ui.label("New file:");
+                    ui.spacing_mut().item_spacing.y = 8.0;
+
+                    let new_file_input = ui.text_edit_singleline(&mut self.new_file_name);
+                    new_file_input.request_focus();
+
+                    // TODO: handle existin file name.
+                    // For now, make input red and disable creating file
+                    // while name already exists.
+
+                    if new_file_input.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                        self.create_file();
+                    }
+
+                    ui.horizontal(|ui| {
+                        if ui.button("Ok").clicked() {
+                            self.create_file();
+                        }
+                        if ui.button("Cancel").clicked() {
+                            self.creating_file = false;
+                        }
+                    });
+                })
+            });
+        }
+
+        // handle events after drawing everything, since
+        // the drawing methods may emit events
+        self.handle_events(ctx);
+    }
+}
+
+impl FE {
+    fn handle_events(&mut self, _ctx: &egui::Context) {
+        let events: Vec<CommandEvent> = self.commands.get_events();
+
+        for event in events {
+            match event {
+                CommandEvent::DirGoBack => {
+                    self.go_back_path();
+                }
+                CommandEvent::FavoritePath => {
+                    println!("TODO: handle favoriting current path");
+                }
+                CommandEvent::NewFile => {
+                    self.creating_file = true;
+                }
+                CommandEvent::SetPath(path) => {
+                    self.set_path(path.clone());
+                }
+                CommandEvent::OpenTerminal => {
+                    println!("TODO: handle open terminal");
+                }
+                _ => {}
+            }
+        }
     }
 }
 

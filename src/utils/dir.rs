@@ -16,7 +16,6 @@ pub struct FeEntry {
     pub size: u64,
 }
 
-
 pub fn fs_to_fe_entry(fs_entry: fs::DirEntry) -> Result<FeEntry, io::Error> {
     let file_type = fs_entry.file_type()?;
     let metadata = fs_entry.metadata()?;

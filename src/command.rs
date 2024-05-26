@@ -1,3 +1,5 @@
+use std::fs;
+
 use egui;
 
 pub enum Modifier {
@@ -6,6 +8,18 @@ pub enum Modifier {
     _Shift,
     _MacCmd,
     Cmd,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CommandEvent {
+    FocusPathBar,
+    FocusSearchBar,
+    DirGoBack,
+    FavoritePath,
+    NewFile,
+    OpenTerminal,
+    SetPath(std::path::PathBuf),
+    _Quit,
 }
 
 pub struct Command {
@@ -17,15 +31,6 @@ pub struct Command {
 pub struct CommandPool {
     commands: Vec<Command>,
     events: Vec<CommandEvent>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum CommandEvent {
-    FocusPathBar,
-    FocusSearchBar,
-    _Quit,
-    DirGoBack,
-    FavoritePath,
 }
 
 impl CommandPool {
@@ -52,14 +57,22 @@ impl CommandPool {
                     modifiers: Vec::from([Modifier::Cmd]),
                     key: Vec::from([egui::Key::B]),
                 },
+                Command {
+                    event: CommandEvent::NewFile,
+                    modifiers: Vec::from([Modifier::Cmd]),
+                    key: Vec::from([egui::Key::N]),
+                },
             ]),
             events: Vec::new(),
         };
     }
 
-    pub fn update(&mut self, ctx: &egui::Context) {
+    // reads the inputs and emits events for issued commands.
+    // Should be called before handling events each frame.
+    pub fn emit_input_events(&mut self, ctx: &egui::Context) {
         // flush last frame's events
         self.events = Vec::new();
+        let mut events_to_emit = Vec::new();
 
         'cmd_loop: for cmd in &self.commands {
             // check keys
@@ -82,15 +95,27 @@ impl CommandPool {
                 }) {
                     continue 'cmd_loop;
                 }
-                // emit
-                println!("emiting event {:?}", cmd.event);
-                self.events.push(cmd.event.clone())
+                events_to_emit.push(cmd.event.clone());
             }
+        }
+
+        // emit collected events
+        for event in events_to_emit {
+            self.emit_event(event);
         }
     }
 
-    // get returns true if `event` is in the event pool
+    // returns whether an event of the `event` type was emited
     pub fn get_event(&self, event: CommandEvent) -> bool {
         return self.events.contains(&event);
+    }
+
+    pub fn get_events(&self) -> Vec<CommandEvent> {
+        return self.events.clone();
+    }
+
+    pub fn emit_event(&mut self, event: CommandEvent) {
+        println!("emiting event {:?}", event);
+        self.events.push(event);
     }
 }
