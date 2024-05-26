@@ -182,9 +182,7 @@ pub fn draw_file_name_cell(
                 }
             });
             if link.clicked() {
-                let mut new_path = current_path.clone();
-                new_path.push(&name.clone());
-                ret = Some(new_path);
+                ret = Some(entry.path.clone());
                 println!("ret = {:?}", ret);
             }
         } else {
