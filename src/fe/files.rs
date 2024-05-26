@@ -1,15 +1,13 @@
-use crate::utils::dir::{DirSorting, SortOrder};
+use super::FE;
+use crate::utils;
+use crate::utils::dir::{fs_to_fe_entry, DirSorting, FeEntry, SortOrder};
 use egui::{Response, Ui};
 use egui_extras::{Column, TableBody, TableBuilder};
 use std::{
     ffi::OsString,
-    fs::{self, DirEntry},
+    fs::{self},
     path::PathBuf,
 };
-
-use crate::utils;
-
-use super::FE;
 
 impl FE {
     // updates `path_string` and `prev_path` with current `path` content.
@@ -40,7 +38,7 @@ impl FE {
         match fs::read_dir(&self.path) {
             Ok(i) => {
                 for entry in i {
-                    let entry = entry.unwrap();
+                    let entry = fs_to_fe_entry(entry.unwrap()).unwrap();
                     entries.push(entry);
                 }
 
@@ -132,32 +130,18 @@ pub fn draw_back_dir_row(
     current_path: PathBuf,
     row_height: f32,
 ) -> Option<PathBuf> {
-    let mut ret = None;
-
-    body.row(row_height, |mut row| {
-        row.col(|ui| {
-            cell(ui, |ui| {
-                ui.label("📁");
-                if ui.link("..").clicked() {
-                    ret = Some(current_path.parent().unwrap().to_path_buf());
-                }
-            })
-            .context_menu(|ui| {
-                get_file_context_menu(ui, true, &OsString::from("..".to_string()), &current_path);
-            });
-        });
-        row.col(|ui| {
-            cell(ui, |ui| {
-                ui.label("");
-            });
-        });
-    });
-    return ret;
+    let entry = FeEntry {
+        name: "..".into(),
+        path: current_path.parent().unwrap().to_path_buf(),
+        is_dir: true,
+        size: 0,
+    };
+    return draw_file_row(body, &entry, current_path, row_height);
 }
 
 pub fn draw_file_row(
     body: &mut TableBody,
-    entry: &DirEntry,
+    entry: &FeEntry,
     current_path: PathBuf,
     row_height: f32,
 ) -> Option<PathBuf> {
@@ -178,21 +162,20 @@ pub fn draw_file_row(
 
 pub fn draw_file_name_cell(
     ui: &mut egui::Ui,
-    entry: &DirEntry,
+    entry: &FeEntry,
     current_path: &PathBuf,
 ) -> Option<PathBuf> {
     let mut ret = None;
 
-    let name = entry.file_name().to_owned();
-    let file_type = entry.file_type().unwrap();
-    let icon = if file_type.is_dir() { "📁" } else { "📃" };
+    let name = entry.name.to_owned();
+    let icon = if entry.is_dir { "📁" } else { "📃" };
 
     cell(ui, |ui| {
         ui.label(icon);
-        if file_type.is_dir() {
+        if entry.is_dir {
             let link = ui.link(&name.to_str().unwrap().to_owned());
             link.context_menu(|ui| {
-                match get_file_context_menu(ui, file_type.is_dir(), &name, &current_path) {
+                match get_file_context_menu(ui, entry.is_dir, &name, &current_path) {
                     Some(path) => ret = Some(path),
                     None => (),
                 }
@@ -206,7 +189,7 @@ pub fn draw_file_name_cell(
         } else {
             ui.label(name.to_str().unwrap().to_owned())
                 .context_menu(|ui| {
-                    match get_file_context_menu(ui, file_type.is_dir(), &name, current_path) {
+                    match get_file_context_menu(ui, entry.is_dir, &name, current_path) {
                         Some(path) => ret = Some(path),
                         None => (),
                     };
@@ -215,7 +198,7 @@ pub fn draw_file_name_cell(
         ui.allocate_space(ui.available_size());
     })
     .context_menu(|ui| {
-        match get_file_context_menu(ui, file_type.is_dir(), &name, current_path) {
+        match get_file_context_menu(ui, entry.is_dir, &name, current_path) {
             Some(path) => ret = Some(path),
             None => (),
         };
@@ -226,22 +209,20 @@ pub fn draw_file_name_cell(
 
 pub fn draw_file_size_cell(
     ui: &mut egui::Ui,
-    entry: &DirEntry,
+    entry: &FeEntry,
     current_path: &PathBuf,
 ) -> Option<PathBuf> {
     let mut ret = None;
-    let name = entry.file_name().to_owned();
-    let file_type = entry.file_type().unwrap();
-    let size = entry.metadata().unwrap().len();
+    let name = entry.name.to_owned();
 
     cell(ui, |ui| {
-        if file_type.is_dir() {
+        if entry.is_dir {
             ui.label("");
         } else {
             // TODO: format size
-            ui.label(utils::human_readable_size(size).to_string())
+            ui.label(utils::human_readable_size(entry.size).to_string())
                 .context_menu(|ui| {
-                    match get_file_context_menu(ui, file_type.is_dir(), &name, current_path) {
+                    match get_file_context_menu(ui, entry.is_dir, &name, current_path) {
                         Some(path) => ret = Some(path),
                         None => (),
                     };
@@ -250,7 +231,7 @@ pub fn draw_file_size_cell(
         ui.allocate_space(ui.available_size());
     })
     .context_menu(|ui| {
-        match get_file_context_menu(ui, file_type.is_dir(), &name, current_path) {
+        match get_file_context_menu(ui, entry.is_dir, &name, current_path) {
             Some(path) => ret = Some(path),
             None => (),
         };
@@ -265,11 +246,6 @@ pub fn get_file_context_menu(
     file_name: &OsString,
     current_path: &PathBuf,
 ) -> Option<PathBuf> {
-    // TODO: have a dir-wide context menu items
-    // and concatanate it file menu items to
-    // create the final context menu.
-    // When clicking in the table but not on any file
-    // we can show the dir menu only.
     let mut ret = None;
     if is_dir {
         if ui.button("Open").clicked() {

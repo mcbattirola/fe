@@ -1,11 +1,10 @@
 use directories::UserDirs;
 use eframe;
 use egui::{Color32, Response, Sense, Stroke, Ui};
-use std::fs;
 use std::path::PathBuf;
 
 use crate::command::{CommandEvent, CommandPool};
-use crate::utils::dir::{DirSorting, SortOrder};
+use crate::utils::dir::{DirSorting, FeEntry, SortOrder};
 
 use self::files::get_current_dir_context_menu;
 mod files;
@@ -14,7 +13,7 @@ pub struct FE {
     // current dir state
     path: std::path::PathBuf,
     path_string: String,
-    entries: Vec<fs::DirEntry>,
+    entries: Vec<FeEntry>,
     prev_path: Option<std::path::PathBuf>,
     dir_sorting: DirSorting,
 
