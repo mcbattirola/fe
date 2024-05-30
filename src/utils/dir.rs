@@ -89,6 +89,30 @@ pub fn compare_entries(a: &FeEntry, b: &FeEntry, sorting: &DirSorting) -> Orderi
     return order;
 }
 
+// returns a valid file name. If a file with that name already exists
+// among the entries, append `-2`. If a `-2` already exists, append `-3` and so on.
+pub fn get_valid_new_file(new_file_name: &OsString, entries: &Vec<FeEntry>) -> OsString {
+    let mut valid_name = new_file_name.clone();
+    let mut counter = 1;
+
+    let is_name_taken = |name: &OsString| -> bool {
+        entries.iter().any(|entry| &entry.name == name)
+    };
+
+    while is_name_taken(&valid_name) {
+        counter += 1;
+        valid_name = append_suffix(new_file_name, counter);
+    }
+
+    valid_name
+}
+
+fn append_suffix(base: &OsString, counter: usize) -> OsString {
+    let mut new_name = base.clone().into_string().unwrap_or_default();
+    new_name.push_str(&format!("-{}", counter));
+    OsString::from(new_name)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

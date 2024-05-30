@@ -1,6 +1,6 @@
 use directories::UserDirs;
 use eframe;
-use egui::{Response, Sense, Ui};
+use egui::{Color32, Context, Id, Response, RichText, Sense, TextEdit, Ui, Visuals};
 use std::path::PathBuf;
 
 use crate::command::{CommandEvent, CommandPool};
@@ -200,10 +200,6 @@ impl eframe::App for FE {
                     let new_file_input = ui.text_edit_singleline(&mut self.new_file_name);
                     new_file_input.request_focus();
 
-                    // TODO: handle existin file name.
-                    // For now, make input red and disable creating file
-                    // while name already exists.
-
                     if new_file_input.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
                         self.create_file();
                     }
@@ -251,6 +247,8 @@ impl FE {
             }
         }
     }
+
+   
 }
 
 // fills the remainder of the panel with an invisible rect capable
@@ -258,4 +256,9 @@ impl FE {
 fn fill_remainder(ui: &mut Ui) -> Response {
     let rect = ui.available_rect_before_wrap();
     return ui.allocate_rect(rect, Sense::click());
+}
+
+fn error_label(text: String, ui: &mut Ui) {
+    // TODO: receive a style object
+    ui.label(RichText::new(text).color(Color32::from_rgb(250, 110, 110)));
 }

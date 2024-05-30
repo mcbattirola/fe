@@ -1,10 +1,10 @@
 use super::FE;
 use crate::command::CommandEvent;
 use crate::utils;
-use crate::utils::dir::{fs_to_fe_entry, DirSorting, FeEntry, SortOrder};
+use crate::utils::dir::{fs_to_fe_entry, get_valid_new_file, DirSorting, FeEntry, SortOrder};
 use egui::{Response, Ui};
 use egui_extras::{Column, TableBody, TableBuilder};
-use std::fmt::Error;
+use std::ffi::OsString;
 use std::fs::File;
 use std::{
     fs::{self},
@@ -32,9 +32,11 @@ impl FE {
     }
 
     // creates the file and resets the file creation state
-    pub fn create_file(&mut self)  {
+    pub fn create_file(&mut self) {
+        let new_file_name = get_valid_new_file(&OsString::from(&self.new_file_name), &self.entries);
+
         let mut new_file_path = self.path.clone();
-        new_file_path.push(&self.new_file_name);
+        new_file_path.push(new_file_name);
 
         println!("creating file {:?}", new_file_path);
         match File::create(new_file_path) {
