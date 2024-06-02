@@ -42,7 +42,7 @@ impl FE {
             path_string: dir_clone.to_str().unwrap().to_owned(),
             entries: Vec::new(),
             prev_path: None,
-            dir_sorting: DirSorting::FileNameAlphabetically(SortOrder::Desc),
+            dir_sorting: DirSorting::FileNameAlphabetically(SortOrder::Asc),
             _search_active: false,
             search_txt: "".to_owned(),
             commands: CommandPool::new(),
