@@ -8,9 +8,11 @@ WIP
   - [x] Go to parent
   - [x] Go to previous dir
 - [x] Click to go to directory
-- [ ] Image preview
+- [ ] Cards view
+  - [ ] Image preview
 - [ ] Run executables
-- [ ] Pinned / Favorites
+- [ ] Data persistence (sled)
+  - [ ] Pinned / Favorites
 - [ ] New Tabs
 - [ ] Shortcuts
   - [x] Ctrl + L -> move cursor to path
@@ -21,7 +23,7 @@ WIP
 - [ ] Context menu
   - [ ] Open terminal here
   - [ ] Copy/paste files
-  - [ ] Delete file
+  - [x] Delete file
   - [ ] File Properties
 - [ ] User scripts
     - [ ] Context menu custom commands/script
@@ -32,7 +34,9 @@ WIP
   - [ ] Show additional info
     - [ ] Show date
     - [ ] Perms
-    - [ ] Size
-  - [ ] Select order
+    - [x] Size
+  - [x] Select order
   - [ ] Show/hide dot files
   - [ ] Show/hide git ignored files
+- [ ] Check actions permissions
+  - [ ] Disable file operations if no perm, etc
