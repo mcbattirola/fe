@@ -1,7 +1,6 @@
-use std::fs;
-
 use egui;
 
+#[derive(Debug)]
 pub enum Modifier {
     _Alt,
     _Ctrl,
@@ -19,6 +18,7 @@ pub enum CommandEvent {
     NewFile,
     OpenTerminal,
     SetPath(std::path::PathBuf),
+    DeleteFile(std::path::PathBuf),
     _Quit,
 }
 
@@ -81,6 +81,7 @@ impl CommandPool {
                     continue 'cmd_loop;
                 }
             }
+            println!("found {:?}", cmd.key);
 
             // check modifiers
             for m in &cmd.modifiers {
@@ -93,10 +94,11 @@ impl CommandPool {
                         Modifier::Cmd => i.modifiers.command,
                     };
                 }) {
+                    println!("dodnt found {:?}", cmd.modifiers);
                     continue 'cmd_loop;
                 }
-                events_to_emit.push(cmd.event.clone());
             }
+            events_to_emit.push(cmd.event.clone());
         }
 
         // emit collected events

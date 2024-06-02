@@ -95,9 +95,8 @@ pub fn get_valid_new_file(new_file_name: &OsString, entries: &Vec<FeEntry>) -> O
     let mut valid_name = new_file_name.clone();
     let mut counter = 1;
 
-    let is_name_taken = |name: &OsString| -> bool {
-        entries.iter().any(|entry| &entry.name == name)
-    };
+    let is_name_taken =
+        |name: &OsString| -> bool { entries.iter().any(|entry| &entry.name == name) };
 
     while is_name_taken(&valid_name) {
         counter += 1;

@@ -31,6 +31,13 @@ impl FE {
         }
     }
 
+    pub fn delete_file(&self, path: PathBuf) {
+        fs::remove_file(path).unwrap_or_else(|err| {
+            println!("error removing file: {:?}", err);
+            // TODO: Add error to self.diagnostics here
+        });
+    }
+
     // creates the file and resets the file creation state
     pub fn create_file(&mut self) {
         let new_file_name = get_valid_new_file(&OsString::from(&self.new_file_name), &self.entries);
@@ -239,7 +246,9 @@ pub fn draw_file_size_cell(ui: &mut egui::Ui, entry: &FeEntry) -> Option<Command
     })
     .context_menu(|ui| {
         match get_file_context_menu(ui, entry) {
-            Some(cmd) => ret = Some(cmd),
+            Some(cmd) => {
+                ret = Some(cmd);
+            }
             None => (),
         };
     });
@@ -259,11 +268,18 @@ pub fn get_file_context_menu(ui: &mut Ui, entry: &FeEntry) -> Option<CommandEven
         ui.close_menu();
         // TODO
     }
+    if ui.button("Delete").clicked() {
+        ret = Some(CommandEvent::DeleteFile(entry.path.clone()));
+    }
     ui.separator();
     match get_current_dir_context_menu(ui) {
         Some(cmd) => ret = Some(cmd),
         None => (),
     };
+
+    if ret.is_some() {
+        ui.close_menu();
+    }
 
     return ret;
 }
@@ -276,6 +292,10 @@ pub fn get_current_dir_context_menu(ui: &mut Ui) -> Option<CommandEvent> {
     }
     if ui.button("Open Terminal").clicked() {
         ret = Some(CommandEvent::OpenTerminal)
+    }
+
+    if ret.is_some() {
+        ui.close_menu();
     }
 
     return ret;

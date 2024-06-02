@@ -1,6 +1,6 @@
 use directories::UserDirs;
 use eframe;
-use egui::{Color32, Context, Id, Response, RichText, Sense, TextEdit, Ui, Visuals};
+use egui::{Response, Sense, Ui};
 use std::path::PathBuf;
 
 use crate::command::{CommandEvent, CommandPool};
@@ -243,12 +243,14 @@ impl FE {
                 CommandEvent::OpenTerminal => {
                     println!("TODO: handle open terminal");
                 }
+                CommandEvent::DeleteFile(path) => {
+                    self.delete_file(path);
+                    self.load_dir_entries();
+                }
                 _ => {}
             }
         }
     }
-
-   
 }
 
 // fills the remainder of the panel with an invisible rect capable
@@ -256,9 +258,4 @@ impl FE {
 fn fill_remainder(ui: &mut Ui) -> Response {
     let rect = ui.available_rect_before_wrap();
     return ui.allocate_rect(rect, Sense::click());
-}
-
-fn error_label(text: String, ui: &mut Ui) {
-    // TODO: receive a style object
-    ui.label(RichText::new(text).color(Color32::from_rgb(250, 110, 110)));
 }
