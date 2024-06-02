@@ -40,13 +40,21 @@ impl FE {
 
     // creates the file and resets the file creation state
     pub fn create_file(&mut self) {
+        let is_dir = self.new_file_name.chars().last() == Some('/');
         let new_file_name = get_valid_new_file(&OsString::from(&self.new_file_name), &self.entries);
 
         let mut new_file_path = self.path.clone();
         new_file_path.push(new_file_name);
 
-        println!("creating file {:?}", new_file_path);
-        match File::create(new_file_path) {
+        let result = if is_dir {
+            println!("creating directory {:?}", new_file_path);
+            fs::create_dir(&new_file_path)
+        } else {
+            println!("creating file {:?}", new_file_path);
+            File::create(&new_file_path).map(|_| ())
+        };
+        
+        match result {
             Err(err) => println!("error creating file: {:?}", err),
             _ => (),
         };
