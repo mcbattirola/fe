@@ -4,8 +4,8 @@ use egui::{Response, Sense, Ui};
 use std::path::PathBuf;
 
 use crate::command::{CommandEvent, CommandPool};
-use crate::utils::term;
 use crate::utils::dir::{DirSorting, FeEntry, SortOrder};
+use crate::utils::{self, term};
 
 use self::files::get_current_dir_context_menu;
 mod files;
@@ -247,6 +247,15 @@ impl FE {
                 CommandEvent::DeleteFile(path) => {
                     self.delete_file(path);
                     self.load_dir_entries();
+                }
+                CommandEvent::Run(path) => {
+                    match utils::run_exe(&path) {
+                        Ok(_) => (),
+                        Err(err) => {
+                            // TODO handle errors
+                            println!("error running {:?}: {:?}", &path, err)
+                        }
+                    };
                 }
                 _ => {}
             }

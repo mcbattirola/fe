@@ -17,7 +17,8 @@ pub fn open_terminal(path: &str) {
         .arg("-a")
         .arg("Terminal")
         .arg(path)
-        .spawn() {
+        .spawn()
+    {
         eprintln!("Failed to open Terminal: {}", e);
     }
 }
@@ -34,10 +35,7 @@ pub fn open_terminal(path: &str) {
     ];
 
     for (terminal, arg) in &terminals {
-        if let Ok(child) = Command::new(terminal)
-            .arg(arg)
-            .arg(path)
-            .spawn() {
+        if let Ok(child) = Command::new(terminal).arg(arg).arg(path).spawn() {
             // Successfully spawned the terminal
             return;
         }

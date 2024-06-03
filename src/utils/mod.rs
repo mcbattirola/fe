@@ -1,3 +1,9 @@
+use std::{
+    io,
+    path::PathBuf,
+    process::{Child, Command},
+};
+
 pub mod dir;
 pub mod term;
 
@@ -50,4 +56,8 @@ mod tests {
         assert_eq!(human_readable_size(1023), "1023 b");
         assert_eq!(human_readable_size(1024), "1 kB");
     }
+}
+
+pub fn run_exe(path: &PathBuf) -> io::Result<Child> {
+    return Command::new(path).spawn();
 }

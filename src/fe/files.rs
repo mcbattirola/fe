@@ -53,7 +53,7 @@ impl FE {
             println!("creating file {:?}", new_file_path);
             File::create(&new_file_path).map(|_| ())
         };
-        
+
         match result {
             Err(err) => println!("error creating file: {:?}", err),
             _ => (),
@@ -171,6 +171,7 @@ pub fn draw_back_dir_row(
         name: "..".into(),
         path: current_path.parent().unwrap().to_path_buf(),
         is_dir: true,
+        is_exe: false,
         size: 0,
     };
     return draw_file_row(body, &entry, row_height);
@@ -270,6 +271,12 @@ pub fn get_file_context_menu(ui: &mut Ui, entry: &FeEntry) -> Option<CommandEven
         if ui.button("Open").clicked() {
             ui.close_menu();
             ret = Some(CommandEvent::SetPath(entry.path.clone()));
+        }
+    }
+    if entry.is_exe {
+        if ui.button("Run").clicked() {
+            ui.close_menu();
+            ret = Some(CommandEvent::Run(entry.path.clone()));
         }
     }
     if ui.button("Properties").clicked() {

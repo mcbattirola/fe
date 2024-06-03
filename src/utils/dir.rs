@@ -12,6 +12,7 @@ pub struct FeEntry {
     pub name: OsString,
     pub path: PathBuf,
     pub is_dir: bool,
+    pub is_exe: bool,
     // entry size in bytes
     pub size: u64,
 }
@@ -25,6 +26,7 @@ pub fn fs_to_fe_entry(fs_entry: fs::DirEntry) -> Result<FeEntry, io::Error> {
         name: fs_entry.file_name(),
         path: fs_entry.path(),
         is_dir,
+        is_exe: is_exe(fs_entry),
         size: metadata.len(),
     })
 }
@@ -230,4 +232,31 @@ mod tests {
 
     // TODO:
     // test_fs_to_fe_entry
+}
+
+pub fn is_exe(fs_entry: fs::DirEntry) -> bool {
+    #[cfg(unix)]
+    {
+        let metadata = fs_entry.metadata().unwrap();
+        let permissions = metadata.permissions();
+        // On Unix, check the execute bits
+        Ok(permissions.mode() & 0o111 != 0)
+    }
+
+    #[cfg(windows)]
+    {
+        let file_type = fs_entry.file_type().unwrap();
+        if file_type.is_file() {
+            // Simple heuristic: check if the file has an executable extension
+            let path = fs_entry.path();
+            if let Some(extension) = path.extension() {
+                let extensions = ["exe", "bat", "cmd", "com"];
+                return extensions.iter().any(|&ext| extension == ext);
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 }

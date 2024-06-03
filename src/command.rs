@@ -19,6 +19,7 @@ pub enum CommandEvent {
     OpenTerminal,
     SetPath(std::path::PathBuf),
     DeleteFile(std::path::PathBuf),
+    Run(std::path::PathBuf),
     _Quit,
 }
 
