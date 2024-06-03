@@ -4,6 +4,7 @@ use egui::{Response, Sense, Ui};
 use std::path::PathBuf;
 
 use crate::command::{CommandEvent, CommandPool};
+use crate::utils::term;
 use crate::utils::dir::{DirSorting, FeEntry, SortOrder};
 
 use self::files::get_current_dir_context_menu;
@@ -241,7 +242,7 @@ impl FE {
                     self.set_path(path.clone());
                 }
                 CommandEvent::OpenTerminal => {
-                    println!("TODO: handle open terminal");
+                    term::open_terminal(self.path_string.as_str());
                 }
                 CommandEvent::DeleteFile(path) => {
                     self.delete_file(path);

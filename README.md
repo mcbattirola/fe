@@ -21,7 +21,7 @@ WIP
   - [x] (Ctrl + F) -> Go to search bar
   - [ ] / -> Go to search bar
 - [ ] Context menu
-  - [ ] Open terminal here
+  - [x] Open terminal here
   - [ ] Copy/paste files
   - [x] Delete file
   - [ ] File Properties

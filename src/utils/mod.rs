@@ -1,4 +1,5 @@
 pub mod dir;
+pub mod term;
 
 pub fn human_readable_size(bytes: u64) -> String {
     let kilobyte = 1024u64;
