@@ -10,7 +10,10 @@ WIP
 - [x] Click to go to directory
 - [ ] Cards view
   - [ ] Image preview
-- [ ] Run executables
+- [ ] File actions
+  - [x] Run executables
+  - [ ] Open URL
+  - [ ] Open as text
 - [ ] Data persistence (sled)
   - [ ] Pinned / Favorites
 - [ ] New Tabs
