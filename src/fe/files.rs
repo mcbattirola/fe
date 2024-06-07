@@ -1,7 +1,9 @@
 use super::FE;
 use crate::command::CommandEvent;
 use crate::utils;
-use crate::utils::dir::{fs_to_fe_entry, get_valid_new_file, DirSorting, FeEntry, SortOrder};
+use crate::utils::dir::{
+    fs_to_fe_entry, get_valid_new_file, DirSorting, FeEntry, QuickAccessEntry, SortOrder,
+};
 use egui::{Response, Ui};
 use egui_extras::{Column, TableBody, TableBuilder};
 use std::ffi::OsString;
@@ -318,4 +320,15 @@ pub fn get_current_dir_context_menu(ui: &mut Ui) -> Option<CommandEvent> {
 
 pub fn cell<R>(ui: &mut Ui, add_contents: impl FnOnce(&mut Ui) -> R) -> Response {
     ui.horizontal(add_contents).response
+}
+
+// checks wether the current_path is favorited
+pub fn is_favorited(current_path: &PathBuf, quick_access: &Vec<QuickAccessEntry>) -> bool {
+    for entry in quick_access {
+        if entry.path == *current_path {
+            return true;
+        }
+    }
+
+    return false;
 }

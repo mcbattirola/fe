@@ -1,13 +1,22 @@
+use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::ffi::OsString;
 use std::path::PathBuf;
 use std::{fs, io};
 
+// QuickAccessEntry represents each Quick Access list entry.
+// It is always a directory.
+#[derive(Serialize, Deserialize, Clone)]
+pub struct QuickAccessEntry {
+    pub name: OsString,
+    pub path: PathBuf,
+}
+
 // FeEntry represents an entry in the file explorer.
 // It is mostly a subset of fs::DirEntry, but we abstract
 // away the properties we don't need to make it easier to handle
 // and mock for testing purposes
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FeEntry {
     pub name: OsString,
     pub path: PathBuf,

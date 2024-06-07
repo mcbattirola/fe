@@ -1,5 +1,6 @@
 mod command;
 mod fe;
+mod storage;
 mod utils;
 
 fn main() -> eframe::Result<()> {

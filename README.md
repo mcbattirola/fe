@@ -8,14 +8,21 @@ WIP
   - [x] Go to parent
   - [x] Go to previous dir
 - [x] Click to go to directory
+- [ ] Config file
 - [ ] Cards view
   - [ ] Image preview
 - [ ] File actions
   - [x] Run executables
   - [ ] Open URL
   - [ ] Open as text
+- [ ] UI improvements
+  - [ ] Hover effect
+  - [ ] Mouse cursor on hover
+  - [ ] Move favorites
 - [ ] Data persistence (sled)
-  - [ ] Pinned / Favorites
+  - [x] Pinned / Favorites
+    - [ ] TODO: make desktop and home part of the favorites
+  - [ ] Subscribe to changes
 - [ ] New Tabs
 - [ ] Shortcuts
   - [x] Ctrl + L -> move cursor to path

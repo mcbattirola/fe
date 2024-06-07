@@ -4,7 +4,8 @@ use egui::{Response, Sense, Ui};
 use std::path::PathBuf;
 
 use crate::command::{CommandEvent, CommandPool};
-use crate::utils::dir::{DirSorting, FeEntry, SortOrder};
+use crate::storage;
+use crate::utils::dir::{DirSorting, FeEntry, QuickAccessEntry, SortOrder};
 use crate::utils::{self, term};
 
 use self::files::get_current_dir_context_menu;
@@ -17,6 +18,10 @@ pub struct FE {
     entries: Vec<FeEntry>,
     prev_path: Option<std::path::PathBuf>,
     dir_sorting: DirSorting,
+
+    // data storage
+    storage: storage::Storage,
+    quick_access: Vec<QuickAccessEntry>,
 
     // search state
     // TODO use an Option<String> as search instead of String + bool
@@ -38,12 +43,20 @@ impl FE {
         let dir = std::env::current_dir().unwrap();
         let dir_clone = dir.clone();
 
+        // TODO read dir from CLI/config file
+        let data_path = "data";
+        let storage = storage::Storage::new(data_path.to_string()).unwrap();
+
+        let quick_access_entries = storage.list_quick_access();
+
         let mut fe = Self {
             path: dir,
             path_string: dir_clone.to_str().unwrap().to_owned(),
             entries: Vec::new(),
             prev_path: None,
             dir_sorting: DirSorting::FileNameAlphabetically(SortOrder::Asc),
+            storage: storage,
+            quick_access: quick_access_entries,
             _search_active: false,
             search_txt: "".to_owned(),
             commands: CommandPool::new(),
@@ -132,8 +145,9 @@ impl eframe::App for FE {
                         self.load_dir_entries()
                     }
 
-                    if ui.button("⭐").clicked() {
-                        println!("TODO: add {:?} to favorites", self.path_string);
+                    let favorited = files::is_favorited(&self.path, &self.quick_access);
+                    if ui.button(if favorited { "🌟" } else { "⭐" }).clicked() {
+                        self.commands.emit_event(CommandEvent::FavoriteCurrentPath);
                     }
                 });
 
@@ -167,6 +181,20 @@ impl eframe::App for FE {
                         if ui.link("📺 Desktop").clicked() {
                             if let Some(user_dirs) = UserDirs::new() {
                                 self.set_path(user_dirs.desktop_dir().unwrap().to_path_buf());
+                            }
+                        }
+
+                        let quick_access = self.quick_access.clone();
+                        for entry in quick_access {
+                            if ui
+                                .link(format!(
+                                    "{} {}",
+                                    "📁",
+                                    entry.name.to_str().unwrap().to_owned(),
+                                ))
+                                .clicked()
+                            {
+                                self.set_path(entry.path);
                             }
                         }
                     });
@@ -232,8 +260,20 @@ impl FE {
                 CommandEvent::DirGoBack => {
                     self.go_back_path();
                 }
-                CommandEvent::FavoritePath => {
-                    println!("TODO: handle favoriting current path");
+                CommandEvent::FavoriteCurrentPath => {
+                    if !files::is_favorited(&self.path, &self.quick_access) {
+                        let entry = QuickAccessEntry {
+                            name: self.path.file_name().unwrap().to_os_string(),
+                            path: self.path.clone(),
+                        };
+                        // update storage
+                        self.storage.save_quick_access(entry.clone());
+                        // update memory
+                        self.quick_access.push(entry);
+                    } else {
+                        self.storage.remove_quick_access(&self.path);
+                        self.quick_access.retain(|entry| entry.path != self.path);
+                    }
                 }
                 CommandEvent::NewFile => {
                     self.creating_file = true;

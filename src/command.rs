@@ -14,7 +14,7 @@ pub enum CommandEvent {
     FocusPathBar,
     FocusSearchBar,
     DirGoBack,
-    FavoritePath,
+    FavoriteCurrentPath,
     NewFile,
     OpenTerminal,
     SetPath(std::path::PathBuf),
@@ -54,7 +54,7 @@ impl CommandPool {
                     key: Vec::from([egui::Key::O]),
                 },
                 Command {
-                    event: CommandEvent::FavoritePath,
+                    event: CommandEvent::FavoriteCurrentPath,
                     modifiers: Vec::from([Modifier::Cmd]),
                     key: Vec::from([egui::Key::B]),
                 },
