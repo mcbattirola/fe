@@ -19,9 +19,13 @@ WIP
   - [ ] Hover effect
   - [ ] Mouse cursor on hover
   - [ ] Move favorites
+  - [ ] Hightlight files as user types
+  - [ ] Navigate files via keyboard
+  - [ ] Run executable by clicking
+  - [ ] Different color on executables
 - [ ] Data persistence (sled)
   - [x] Pinned / Favorites
-    - [ ] TODO: make desktop and home part of the favorites
+    - [ ] TODO: make desktop and home part of the favorites (not hardcoded)
   - [ ] Subscribe to changes
 - [ ] New Tabs
 - [ ] Shortcuts
@@ -34,7 +38,10 @@ WIP
   - [x] Open terminal here
   - [ ] Copy/paste files
   - [x] Delete file
+    - [ ] Create full path
+  - [ ] Delete dir
   - [ ] File Properties
+  - [x] Copy path to clipboard
 - [ ] User scripts
     - [ ] Context menu custom commands/script
 - [ ] Drag and drop files from/to explorer

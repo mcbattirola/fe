@@ -285,6 +285,10 @@ pub fn get_file_context_menu(ui: &mut Ui, entry: &FeEntry) -> Option<CommandEven
         ui.close_menu();
         // TODO
     }
+    if ui.button("Copy path").clicked() {
+        ui.ctx().output_mut(|o| o.copied_text = entry.path.to_string_lossy().to_string());
+        ui.close_menu();
+    }
     if ui.button("Delete").clicked() {
         ret = Some(CommandEvent::DeleteFile(entry.path.clone()));
     }
