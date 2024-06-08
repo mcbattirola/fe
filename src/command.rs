@@ -1,5 +1,7 @@
 use egui;
 
+use crate::utils;
+
 #[derive(Debug)]
 pub enum Modifier {
     _Alt,
@@ -18,7 +20,7 @@ pub enum CommandEvent {
     NewFile,
     OpenTerminal,
     SetPath(std::path::PathBuf),
-    DeleteFile(std::path::PathBuf),
+    DeleteFile(utils::dir::FeEntry),
     Run(std::path::PathBuf),
     _Quit,
 }

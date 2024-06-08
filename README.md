@@ -37,9 +37,10 @@ WIP
 - [ ] Context menu
   - [x] Open terminal here
   - [ ] Copy/paste files
+  - [ ] Create file
+   - [x] Create full path
   - [x] Delete file
-    - [ ] Create full path
-  - [ ] Delete dir
+  - [x] Delete dir
   - [ ] File Properties
   - [x] Copy path to clipboard
 - [ ] User scripts

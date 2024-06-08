@@ -33,11 +33,18 @@ impl FE {
         }
     }
 
-    pub fn delete_file(&self, path: PathBuf) {
-        fs::remove_file(path).unwrap_or_else(|err| {
-            println!("error removing file: {:?}", err);
-            // TODO: Add error to self.diagnostics here
-        });
+    pub fn delete_entry(&self, entry: FeEntry) {
+        if entry.is_dir {
+            fs::remove_dir_all(entry.path).unwrap_or_else(|err| {
+                println!("error removing file: {:?}", err);
+                // TODO: Add error to self.diagnostics here
+            });
+        } else {
+            fs::remove_file(entry.path).unwrap_or_else(|err| {
+                println!("error removing file: {:?}", err);
+                // TODO: Add error to self.diagnostics here
+            });
+        }
     }
 
     // creates the file and resets the file creation state
@@ -49,10 +56,11 @@ impl FE {
         new_file_path.push(new_file_name);
 
         let result = if is_dir {
-            println!("creating directory {:?}", new_file_path);
-            fs::create_dir(&new_file_path)
+            fs::create_dir_all(new_file_path)
         } else {
-            println!("creating file {:?}", new_file_path);
+            if let Some(parent) = new_file_path.parent() {
+                fs::create_dir_all(parent).unwrap();
+            }    
             File::create(&new_file_path).map(|_| ())
         };
 
@@ -290,7 +298,7 @@ pub fn get_file_context_menu(ui: &mut Ui, entry: &FeEntry) -> Option<CommandEven
         ui.close_menu();
     }
     if ui.button("Delete").clicked() {
-        ret = Some(CommandEvent::DeleteFile(entry.path.clone()));
+        ret = Some(CommandEvent::DeleteFile(entry.clone()));
     }
     ui.separator();
     match get_current_dir_context_menu(ui) {

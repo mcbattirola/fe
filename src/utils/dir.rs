@@ -16,7 +16,7 @@ pub struct QuickAccessEntry {
 // It is mostly a subset of fs::DirEntry, but we abstract
 // away the properties we don't need to make it easier to handle
 // and mock for testing purposes
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FeEntry {
     pub name: OsString,
     pub path: PathBuf,

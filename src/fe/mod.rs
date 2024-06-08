@@ -284,8 +284,8 @@ impl FE {
                 CommandEvent::OpenTerminal => {
                     term::open_terminal(self.path_string.as_str());
                 }
-                CommandEvent::DeleteFile(path) => {
-                    self.delete_file(path);
+                CommandEvent::DeleteFile(entry) => {
+                    self.delete_entry(entry);
                     self.load_dir_entries();
                 }
                 CommandEvent::Run(path) => {
