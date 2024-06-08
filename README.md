@@ -21,8 +21,8 @@ WIP
   - [ ] Move favorites
   - [ ] Hightlight files as user types
   - [ ] Navigate files via keyboard
-  - [ ] Run executable by clicking
-  - [ ] Different color on executables
+  - [x] Run executable by clicking
+  - [x] Different color on executables
 - [ ] Data persistence (sled)
   - [x] Pinned / Favorites
     - [ ] TODO: make desktop and home part of the favorites (not hardcoded)

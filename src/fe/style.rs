@@ -9,11 +9,10 @@ pub struct Style {
     pub row_height: f32,
 }
 
-
 impl Style {
     pub fn default() -> Self {
         Self {
-            colors: Colors{
+            colors: Colors {
                 exe: Color32::GREEN,
             },
             row_height: 16.0,

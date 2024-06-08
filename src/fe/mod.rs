@@ -8,7 +8,8 @@ use crate::storage;
 use crate::utils::dir::{DirSorting, FeEntry, QuickAccessEntry, SortOrder};
 use crate::utils::{self, term};
 
-use self::files::get_current_dir_context_menu;
+use self::draw::get_current_dir_context_menu;
+mod draw;
 mod files;
 mod style;
 
@@ -86,6 +87,56 @@ impl FE {
     fn init(self, cc: &eframe::CreationContext<'_>) -> Self {
         cc.egui_ctx.set_pixels_per_point(1.2);
         self
+    }
+
+    fn handle_events(&mut self, _ctx: &egui::Context) {
+        let events: Vec<CommandEvent> = self.commands.get_events();
+
+        for event in events {
+            match event {
+                CommandEvent::DirGoBack => {
+                    self.go_back_path();
+                }
+                CommandEvent::FavoriteCurrentPath => {
+                    if !files::is_favorited(&self.path, &self.quick_access) {
+                        let entry = QuickAccessEntry {
+                            name: self.path.file_name().unwrap().to_os_string(),
+                            path: self.path.clone(),
+                        };
+                        // update storage
+                        self.storage.save_quick_access(entry.clone());
+                        // update memory
+                        self.quick_access.push(entry);
+                    } else {
+                        self.storage.remove_quick_access(&self.path);
+                        self.quick_access.retain(|entry| entry.path != self.path);
+                    }
+                }
+                CommandEvent::NewFile => {
+                    self.creating_file = true;
+                }
+                CommandEvent::SetPath(path) => {
+                    self.set_path(path.clone());
+                }
+                CommandEvent::OpenTerminal => {
+                    term::open_terminal(self.path_string.as_str());
+                }
+                CommandEvent::DeleteFile(entry) => {
+                    self.delete_entry(entry);
+                    self.load_dir_entries();
+                }
+                CommandEvent::Run(path) => {
+                    match utils::run_exe(&path) {
+                        Ok(_) => (),
+                        Err(err) => {
+                            // TODO handle errors
+                            println!("error running {:?}: {:?}", &path, err)
+                        }
+                    };
+                }
+                _ => {}
+            }
+        }
     }
 }
 
@@ -173,7 +224,8 @@ impl eframe::App for FE {
                     egui::ScrollArea::vertical().show(ui, |ui| {
                         ui.label("quick access");
                         ui.separator();
-                        // TODO organize this part
+                        // TODO: Home and Desktop should be stored to quick links on first load
+                        // then, read from storage instead of hardcoding it here
                         if ui.link("🏠 Home").clicked() {
                             if home::home_dir().is_some() {
                                 self.set_path(home::home_dir().unwrap());
@@ -249,58 +301,6 @@ impl eframe::App for FE {
         // handle events after drawing everything, since
         // the drawing methods may emit events
         self.handle_events(ctx);
-    }
-}
-
-impl FE {
-    fn handle_events(&mut self, _ctx: &egui::Context) {
-        let events: Vec<CommandEvent> = self.commands.get_events();
-
-        for event in events {
-            match event {
-                CommandEvent::DirGoBack => {
-                    self.go_back_path();
-                }
-                CommandEvent::FavoriteCurrentPath => {
-                    if !files::is_favorited(&self.path, &self.quick_access) {
-                        let entry = QuickAccessEntry {
-                            name: self.path.file_name().unwrap().to_os_string(),
-                            path: self.path.clone(),
-                        };
-                        // update storage
-                        self.storage.save_quick_access(entry.clone());
-                        // update memory
-                        self.quick_access.push(entry);
-                    } else {
-                        self.storage.remove_quick_access(&self.path);
-                        self.quick_access.retain(|entry| entry.path != self.path);
-                    }
-                }
-                CommandEvent::NewFile => {
-                    self.creating_file = true;
-                }
-                CommandEvent::SetPath(path) => {
-                    self.set_path(path.clone());
-                }
-                CommandEvent::OpenTerminal => {
-                    term::open_terminal(self.path_string.as_str());
-                }
-                CommandEvent::DeleteFile(entry) => {
-                    self.delete_entry(entry);
-                    self.load_dir_entries();
-                }
-                CommandEvent::Run(path) => {
-                    match utils::run_exe(&path) {
-                        Ok(_) => (),
-                        Err(err) => {
-                            // TODO handle errors
-                            println!("error running {:?}: {:?}", &path, err)
-                        }
-                    };
-                }
-                _ => {}
-            }
-        }
     }
 }
 
