@@ -10,6 +10,7 @@ use crate::utils::{self, term};
 
 use self::files::get_current_dir_context_menu;
 mod files;
+mod style;
 
 pub struct FE {
     // current dir state
@@ -32,7 +33,7 @@ pub struct FE {
     commands: CommandPool,
 
     // styles
-    row_height: f32,
+    style: style::Style,
 
     creating_file: bool,
     new_file_name: String,
@@ -60,7 +61,7 @@ impl FE {
             _search_active: false,
             search_txt: "".to_owned(),
             commands: CommandPool::new(),
-            row_height: 16.0,
+            style: style::Style::default(),
             creating_file: false,
             new_file_name: "".to_owned(),
         };
