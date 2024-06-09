@@ -23,7 +23,7 @@ WIP
   - [ ] Navigate files via keyboard
   - [x] Run executable by clicking
   - [x] Different color on executables
-- [ ] Data persistence (sled)
+- [ ] Data persistence
   - [x] Pinned / Favorites
     - [ ] TODO: make desktop and home part of the favorites (not hardcoded)
   - [ ] Subscribe to changes
@@ -58,3 +58,7 @@ WIP
   - [ ] Show/hide git ignored files
 - [ ] Check actions permissions
   - [ ] Disable file operations if no perm, etc
+- [ ] Error handling
+  - [ ] Fix all the "TODO: handle error" annotations
+  - [ ] Report errors to users
+- [ ] Allow opening two FE (use SQLite or LMDB)

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::ffi::OsString;
+use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::{fs, io};
 
@@ -249,7 +250,7 @@ pub fn is_exe(fs_entry: fs::DirEntry) -> bool {
         let metadata = fs_entry.metadata().unwrap();
         let permissions = metadata.permissions();
         // On Unix, check the execute bits
-        Ok(permissions.mode() & 0o111 != 0)
+        return permissions.mode() & 0o111 != 0;
     }
 
     #[cfg(windows)]

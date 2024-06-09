@@ -25,18 +25,23 @@ pub fn open_terminal(path: &str) {
 
 #[cfg(target_os = "linux")]
 pub fn open_terminal(path: &str) {
+    // TODO: this whole thing needs to be improved.
+    // Allacrity, for instance, should have --hold to persist
+    // if we close the app.
     let terminals = [
+        // tested
+        ("alacritty", "--working-directory"),
+        // untested
         ("gnome-terminal", "--working-directory"),
         ("konsole", "--workdir"),
         ("xterm", "-e"),
         ("terminator", "-p"),
-        ("alacritty", "-e"),
         ("urxvt", "-cd"),
+        // TODO: st
     ];
 
     for (terminal, arg) in &terminals {
-        if let Ok(child) = Command::new(terminal).arg(arg).arg(path).spawn() {
-            // Successfully spawned the terminal
+        if let Ok(_child) = Command::new(terminal).arg(arg).arg(path).spawn() {
             return;
         }
     }

@@ -10,7 +10,7 @@ pub struct Storage {
 const KEY_QUICK_ACCESS: &str = "quick_access";
 
 impl Storage {
-    pub fn new(path: String) -> Result<Self, sled::Error> {
+    pub fn new(path: PathBuf) -> Result<Self, sled::Error> {
         let db = sled::open(path)?;
         Ok(Self { db })
     }
