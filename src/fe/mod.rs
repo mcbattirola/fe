@@ -1,6 +1,7 @@
 use directories::UserDirs;
 use eframe;
 use egui::{Response, Sense, Ui};
+use std::fs;
 use std::path::PathBuf;
 
 use crate::command::{CommandEvent, CommandPool};
@@ -46,8 +47,12 @@ impl FE {
         let dir_clone = dir.clone();
 
         // TODO read dir from CLI/config file
-        let data_path = "data";
-        let storage = storage::Storage::new(data_path.to_string()).unwrap();
+
+        let mut data_path = home::home_dir().unwrap();
+        data_path.push(".fe/data");
+        println!("data_path: {:?}", data_path);
+        fs::create_dir_all(data_path.parent().unwrap()).expect("cant create data dir");
+        let storage = storage::Storage::new(data_path).unwrap();
 
         let quick_access_entries = storage.list_quick_access();
 
