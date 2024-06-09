@@ -33,16 +33,19 @@ impl FE {
     }
 
     pub fn delete_entry(&self, entry: FeEntry) {
-        if entry.is_dir {
-            fs::remove_dir_all(entry.path).unwrap_or_else(|err| {
-                println!("error removing file: {:?}", err);
-                // TODO: Add error to self.diagnostics here
-            });
-        } else {
-            fs::remove_file(entry.path).unwrap_or_else(|err| {
-                println!("error removing file: {:?}", err);
-                // TODO: Add error to self.diagnostics here
-            });
+        match entry.entry_type {
+            utils::dir::EntryKind::Dir(_) => {
+                fs::remove_dir_all(entry.path).unwrap_or_else(|err| {
+                    println!("error removing file: {:?}", err);
+                    // TODO: Add error to self.diagnostics here
+                });
+            }
+            utils::dir::EntryKind::File(_) => {
+                fs::remove_file(entry.path).unwrap_or_else(|err| {
+                    println!("error removing file: {:?}", err);
+                    // TODO: Add error to self.diagnostics here
+                });
+            }
         }
     }
 

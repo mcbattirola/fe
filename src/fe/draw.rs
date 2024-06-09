@@ -16,9 +16,7 @@ pub fn draw_back_dir_row(
     let entry = FeEntry {
         name: "..".into(),
         path: current_path.parent().unwrap().to_path_buf(),
-        is_dir: true,
-        is_exe: false,
-        size: 0,
+        entry_type: utils::dir::EntryKind::Dir(utils::dir::Dir {}),
     };
     return draw_file_row(body, &entry, row_height, style);
 }
@@ -52,37 +50,42 @@ pub fn draw_file_name_cell(
     let mut ret = None;
 
     let name = entry.name.to_owned().to_str().unwrap().to_owned();
-    let icon = if entry.is_dir { "📁" } else { "📃" };
+    let icon = match entry.entry_type {
+        utils::dir::EntryKind::Dir(_) => "📁",
+        utils::dir::EntryKind::File(_) => "📃",
+    };
 
     cell(ui, |ui| {
         ui.label(icon);
-        if entry.is_dir {
-            let link = ui.link(name);
-            link.context_menu(|ui| match get_file_context_menu(ui, entry) {
-                Some(cmd) => ret = Some(cmd),
-                None => (),
-            });
-            if link.clicked() {
-                ret = Some(CommandEvent::SetPath(entry.path.clone()));
-                println!("ret = {:?}", ret);
-            }
-        } else {
-            let resp = if entry.is_exe {
-                let exe = ui.link(RichText::new(name).color(style.colors.exe));
-                if exe.clicked() {
-                    ret = Some(CommandEvent::Run(entry.path.clone()));
-                }
-                exe
-            } else {
-                ui.label(name)
-            };
-
-            resp.context_menu(|ui| {
-                match get_file_context_menu(ui, entry) {
+        match &entry.entry_type {
+            utils::dir::EntryKind::Dir(_) => {
+                let link = ui.link(name);
+                link.context_menu(|ui| match get_file_context_menu(ui, entry) {
                     Some(cmd) => ret = Some(cmd),
                     None => (),
+                });
+                if link.clicked() {
+                    ret = Some(CommandEvent::SetPath(entry.path.clone()));
+                    println!("ret = {:?}", ret);
+                }
+            }
+            utils::dir::EntryKind::File(file) => {
+                let resp = if file.is_exe {
+                    let exe = ui.link(RichText::new(name).color(style.colors.exe));
+                    if exe.clicked() {
+                        ret = Some(CommandEvent::Run(entry.path.clone()));
+                    }
+                    exe
+                } else {
+                    ui.label(name)
                 };
-            });
+                resp.context_menu(|ui| {
+                    match get_file_context_menu(ui, entry) {
+                        Some(cmd) => ret = Some(cmd),
+                        None => (),
+                    };
+                });
+            }
         }
         ui.allocate_space(ui.available_size());
     })
@@ -100,16 +103,19 @@ pub fn draw_file_size_cell(ui: &mut egui::Ui, entry: &FeEntry) -> Option<Command
     let mut ret = None;
 
     cell(ui, |ui| {
-        if entry.is_dir {
-            ui.label("");
-        } else {
-            ui.label(utils::human_readable_size(entry.size).to_string())
-                .context_menu(|ui| {
-                    match get_file_context_menu(ui, entry) {
-                        Some(cmd) => ret = Some(cmd),
-                        None => (),
-                    };
-                });
+        match &entry.entry_type {
+            utils::dir::EntryKind::Dir(_) => {
+                ui.label("");
+            }
+            utils::dir::EntryKind::File(file) => {
+                ui.label(utils::human_readable_size(file.size).to_string())
+                    .context_menu(|ui| {
+                        match get_file_context_menu(ui, entry) {
+                            Some(cmd) => ret = Some(cmd),
+                            None => (),
+                        };
+                    });
+            }
         }
         ui.allocate_space(ui.available_size());
     })
@@ -127,18 +133,23 @@ pub fn draw_file_size_cell(ui: &mut egui::Ui, entry: &FeEntry) -> Option<Command
 
 pub fn get_file_context_menu(ui: &mut Ui, entry: &FeEntry) -> Option<CommandEvent> {
     let mut ret = None;
-    if entry.is_dir {
-        if ui.button("Open").clicked() {
-            ui.close_menu();
-            ret = Some(CommandEvent::SetPath(entry.path.clone()));
+    match &entry.entry_type {
+        utils::dir::EntryKind::Dir(_) => {
+            if ui.button("Open").clicked() {
+                ui.close_menu();
+                ret = Some(CommandEvent::SetPath(entry.path.clone()));
+            }
+        }
+        utils::dir::EntryKind::File(file) => {
+            if file.is_exe {
+                if ui.button("Run").clicked() {
+                    ui.close_menu();
+                    ret = Some(CommandEvent::Run(entry.path.clone()));
+                }
+            }
         }
     }
-    if entry.is_exe {
-        if ui.button("Run").clicked() {
-            ui.close_menu();
-            ret = Some(CommandEvent::Run(entry.path.clone()));
-        }
-    }
+
     if ui.button("Properties").clicked() {
         ui.close_menu();
         // TODO

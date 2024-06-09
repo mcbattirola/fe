@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::ffi::OsString;
 use std::path::PathBuf;
+use std::time::SystemTime;
 use std::{fs, io};
 
 // QuickAccessEntry represents each Quick Access list entry.
@@ -12,6 +13,24 @@ pub struct QuickAccessEntry {
     pub path: PathBuf,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Dir {}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct File {
+    pub path: PathBuf,
+    pub is_exe: bool,
+    // file size in bytes
+    pub size: u64,
+    pub modified: SystemTime,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EntryKind {
+    Dir(Dir),
+    File(File),
+}
+
 // FeEntry represents an entry in the file explorer.
 // It is mostly a subset of fs::DirEntry, but we abstract
 // away the properties we don't need to make it easier to handle
@@ -20,24 +39,31 @@ pub struct QuickAccessEntry {
 pub struct FeEntry {
     pub name: OsString,
     pub path: PathBuf,
-    pub is_dir: bool,
-    pub is_exe: bool,
-    // entry size in bytes
-    pub size: u64,
+    pub entry_type: EntryKind,
 }
 
 pub fn fs_to_fe_entry(fs_entry: fs::DirEntry) -> Result<FeEntry, io::Error> {
     let file_type = fs_entry.file_type()?;
     let metadata = fs_entry.metadata()?;
     let is_dir = file_type.is_dir();
+    let modified = metadata.modified()?;
 
-    Ok(FeEntry {
+    let entry_type = if is_dir {
+        EntryKind::Dir(Dir {})
+    } else {
+        EntryKind::File(File {
+            path: fs_entry.path(),
+            is_exe: is_exe(&fs_entry),
+            size: metadata.len(),
+            modified: modified,
+        })
+    };
+
+    return Ok(FeEntry {
         name: fs_entry.file_name(),
         path: fs_entry.path(),
-        is_dir,
-        is_exe: is_exe(fs_entry),
-        size: metadata.len(),
-    })
+        entry_type,
+    });
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -74,26 +100,28 @@ impl DirSorting {
 }
 
 pub fn compare_entries(a: &FeEntry, b: &FeEntry, sorting: &DirSorting) -> Ordering {
-    let a_is_dir = a.is_dir;
-    let b_is_dir = b.is_dir;
-
-    let order = match (a_is_dir, b_is_dir) {
+    let order = match (&a.entry_type, &b.entry_type) {
         // dirs will always come first, no matter the ordering
-        (true, false) => Ordering::Less,
-        (false, true) => Ordering::Greater,
-        _ => match sorting {
+        (EntryKind::Dir(_), EntryKind::File(_)) => Ordering::Less,
+        (EntryKind::File(_), EntryKind::Dir(_)) => Ordering::Greater,
+        (EntryKind::File(a_file), EntryKind::File(b_file)) => match sorting {
             DirSorting::FileNameAlphabetically(SortOrder::Asc) => a.name.cmp(&b.name),
             DirSorting::FileNameAlphabetically(SortOrder::Desc) => b.name.cmp(&a.name),
             DirSorting::FileSize(SortOrder::Asc) => {
-                let a_size = a.size;
-                let b_size = b.size;
+                let a_size = a_file.size;
+                let b_size = b_file.size;
                 a_size.cmp(&b_size)
             }
             DirSorting::FileSize(SortOrder::Desc) => {
-                let a_size = a.size;
-                let b_size = b.size;
+                let a_size = a_file.size;
+                let b_size = b_file.size;
                 b_size.cmp(&a_size)
             } // _ => Ordering::Equal,
+        },
+        (EntryKind::Dir(_), EntryKind::Dir(_)) => match sorting {
+            DirSorting::FileNameAlphabetically(SortOrder::Asc) => a.name.cmp(&b.name),
+            DirSorting::FileNameAlphabetically(SortOrder::Desc) => b.name.cmp(&a.name),
+            _ => Ordering::Equal,
         },
     };
 
@@ -114,7 +142,7 @@ pub fn get_valid_new_file(new_file_name: &OsString, entries: &Vec<FeEntry>) -> O
         valid_name = append_suffix(new_file_name, counter);
     }
 
-    valid_name
+    return valid_name;
 }
 
 fn append_suffix(base: &OsString, counter: usize) -> OsString {
@@ -243,7 +271,7 @@ mod tests {
     // test_fs_to_fe_entry
 }
 
-pub fn is_exe(fs_entry: fs::DirEntry) -> bool {
+pub fn is_exe(fs_entry: &fs::DirEntry) -> bool {
     #[cfg(unix)]
     {
         let metadata = fs_entry.metadata().unwrap();
