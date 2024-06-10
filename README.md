@@ -62,3 +62,4 @@ WIP
   - [ ] Fix all the "TODO: handle error" annotations
   - [ ] Report errors to users
 - [ ] Allow opening two FE (use SQLite or LMDB)
+- [ ] Test coverage
