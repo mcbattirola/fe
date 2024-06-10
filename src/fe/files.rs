@@ -1,6 +1,8 @@
 use super::draw;
 use super::FE;
 use crate::utils;
+use crate::utils::dir::get_sort_icon;
+use crate::utils::dir::DirSortingType;
 use crate::utils::dir::{
     fs_to_fe_entry, get_valid_new_file, DirSorting, FeEntry, QuickAccessEntry, SortOrder,
 };
@@ -113,6 +115,7 @@ impl FE {
                 .resizable(false)
                 .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
                 .column(Column::auto())
+                .column(Column::auto())
                 .column(Column::remainder())
                 .min_scrolled_height(0.0)
                 .max_scroll_height(600.0);
@@ -124,7 +127,13 @@ impl FE {
                     header.col(|ui| {
                         ui.strong("Name");
 
-                        if ui.button(self.dir_sorting.get_sort_icon()).clicked() {
+                        if ui
+                            .button(get_sort_icon(
+                                DirSortingType::FileNameAlphabetically,
+                                &self.dir_sorting,
+                            ))
+                            .clicked()
+                        {
                             // if currently sorting by name, toggle it
                             // otherwise, sort by name down
                             match &self.dir_sorting {
@@ -143,12 +152,32 @@ impl FE {
                     });
                     header.col(|ui| {
                         ui.strong("Size");
-                        if ui.button(self.dir_sorting.get_sort_icon()).clicked() {
+                        if ui
+                            .button(get_sort_icon(DirSortingType::FileSize, &self.dir_sorting))
+                            .clicked()
+                        {
                             match &self.dir_sorting {
                                 DirSorting::FileSize(dir) => {
                                     self.update_sorting(DirSorting::FileSize(dir.toggle()))
                                 }
                                 _ => self.update_sorting(DirSorting::FileSize(SortOrder::Asc)),
+                            }
+                        }
+                    });
+                    header.col(|ui| {
+                        ui.strong("Modified");
+                        if ui
+                            .button(get_sort_icon(
+                                DirSortingType::LastModified,
+                                &self.dir_sorting,
+                            ))
+                            .clicked()
+                        {
+                            match &self.dir_sorting {
+                                DirSorting::LastModified(dir) => {
+                                    self.update_sorting(DirSorting::LastModified(dir.toggle()))
+                                }
+                                _ => self.update_sorting(DirSorting::LastModified(SortOrder::Asc)),
                             }
                         }
                     });

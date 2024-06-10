@@ -1,7 +1,9 @@
+use chrono::{self, DateTime, Local};
 use std::{
     io,
     path::PathBuf,
     process::{Child, Command},
+    time::SystemTime,
 };
 
 pub mod dir;
@@ -60,4 +62,9 @@ mod tests {
 
 pub fn run_exe(path: &PathBuf) -> io::Result<Child> {
     return Command::new(path).spawn();
+}
+
+pub fn system_time_to_human_readable(time: SystemTime) -> String {
+    let datetime: DateTime<Local> = time.into();
+    return datetime.format("%Y-%m-%d %H:%M:%S").to_string();
 }

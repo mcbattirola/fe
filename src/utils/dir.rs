@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::ffi::OsString;
+#[cfg(target_os = "unix")]
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::time::SystemTime;
@@ -80,23 +81,48 @@ impl SortOrder {
             SortOrder::Desc => SortOrder::Asc,
         }
     }
+
+    pub fn icon(&self) -> &'static str {
+        match self {
+            SortOrder::Asc => "⬆",
+            SortOrder::Desc => "⬇",
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
-
 pub enum DirSorting {
     FileNameAlphabetically(SortOrder),
     FileSize(SortOrder),
+    LastModified(SortOrder),
 }
 
-impl DirSorting {
-    pub fn get_sort_icon(&self) -> &'static str {
-        match self {
-            DirSorting::FileNameAlphabetically(SortOrder::Asc)
-            | DirSorting::FileSize(SortOrder::Asc) => "⬆",
-            DirSorting::FileNameAlphabetically(SortOrder::Desc)
-            | DirSorting::FileSize(SortOrder::Desc) => "⬇",
+#[derive(Debug, Clone, PartialEq)]
+pub enum DirSortingType {
+    FileNameAlphabetically,
+    FileSize,
+    LastModified,
+}
+
+impl From<&DirSorting> for DirSortingType {
+    fn from(sorting: &DirSorting) -> Self {
+        match sorting {
+            DirSorting::FileNameAlphabetically(_) => DirSortingType::FileNameAlphabetically,
+            DirSorting::FileSize(_) => DirSortingType::FileSize,
+            DirSorting::LastModified(_) => DirSortingType::LastModified,
         }
+    }
+}
+
+pub fn get_sort_icon(target: DirSortingType, current: &DirSorting) -> &'static str {
+    if DirSortingType::from(current) == target {
+        match current {
+            DirSorting::FileNameAlphabetically(order)
+            | DirSorting::FileSize(order)
+            | DirSorting::LastModified(order) => order.clone().toggle().icon(),
+        }
+    } else {
+        "⬇"
     }
 }
 
@@ -117,7 +143,17 @@ pub fn compare_entries(a: &FeEntry, b: &FeEntry, sorting: &DirSorting) -> Orderi
                 let a_size = a_file.size;
                 let b_size = b_file.size;
                 b_size.cmp(&a_size)
-            } // _ => Ordering::Equal,
+            }
+            DirSorting::LastModified(SortOrder::Asc) => {
+                let a_modified = a_file.modified;
+                let b_modified = b_file.modified;
+                a_modified.cmp(&b_modified)
+            }
+            DirSorting::LastModified(SortOrder::Desc) => {
+                let a_modified = a_file.modified;
+                let b_modified = b_file.modified;
+                b_modified.cmp(&a_modified)
+            }
         },
         (EntryKind::Dir(_), EntryKind::Dir(_)) => match sorting {
             DirSorting::FileNameAlphabetically(SortOrder::Asc) => a.name.cmp(&b.name),

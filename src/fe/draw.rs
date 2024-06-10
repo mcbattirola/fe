@@ -37,6 +37,10 @@ pub fn draw_file_row(
             Some(cmd) => ret = Some(cmd),
             None => (),
         });
+        row.col(|ui| match draw_last_modified_cell(ui, &entry) {
+            Some(cmd) => ret = Some(cmd),
+            None => (),
+        });
     });
 
     return ret;
@@ -109,6 +113,38 @@ pub fn draw_file_size_cell(ui: &mut egui::Ui, entry: &FeEntry) -> Option<Command
             }
             utils::dir::EntryKind::File(file) => {
                 ui.label(utils::human_readable_size(file.size).to_string())
+                    .context_menu(|ui| {
+                        match get_file_context_menu(ui, entry) {
+                            Some(cmd) => ret = Some(cmd),
+                            None => (),
+                        };
+                    });
+            }
+        }
+        ui.allocate_space(ui.available_size());
+    })
+    .context_menu(|ui| {
+        match get_file_context_menu(ui, entry) {
+            Some(cmd) => {
+                ret = Some(cmd);
+            }
+            None => (),
+        };
+    });
+
+    return ret;
+}
+
+pub fn draw_last_modified_cell(ui: &mut egui::Ui, entry: &FeEntry) -> Option<CommandEvent> {
+    let mut ret = None;
+
+    cell(ui, |ui| {
+        match &entry.entry_type {
+            utils::dir::EntryKind::Dir(_) => {
+                ui.label("");
+            }
+            utils::dir::EntryKind::File(file) => {
+                ui.label(utils::system_time_to_human_readable(file.modified))
                     .context_menu(|ui| {
                         match get_file_context_menu(ui, entry) {
                             Some(cmd) => ret = Some(cmd),

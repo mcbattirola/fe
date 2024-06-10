@@ -7,7 +7,7 @@ WIP
 - [ ] Path navigation
   - [x] Go to parent
   - [x] Go to previous dir
-- [x] Click to go to directory
+  - [x] Click to go to directory
 - [ ] Config file
 - [ ] Cards view
   - [ ] Image preview
@@ -50,7 +50,7 @@ WIP
 - [ ] Expand env vars in search and path bar
 - [ ] Files view
   - [ ] Show additional info
-    - [ ] Show date
+    - [x] Modified date
     - [ ] Perms
     - [x] Size
   - [x] Select order
