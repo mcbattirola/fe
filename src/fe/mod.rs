@@ -94,7 +94,7 @@ impl FE {
         self
     }
 
-    fn handle_events(&mut self, _ctx: &egui::Context) {
+    fn handle_events(&mut self, _ctx: &egui::Context) -> Option<()> {
         let events: Vec<CommandEvent> = self.commands.get_events();
 
         for event in events {
@@ -105,7 +105,7 @@ impl FE {
                 CommandEvent::FavoriteCurrentPath => {
                     if !files::is_favorited(&self.path, &self.quick_access) {
                         let entry = QuickAccessEntry {
-                            name: self.path.file_name().unwrap().to_os_string(),
+                            name: self.path.file_name()?.to_os_string(),
                             path: self.path.clone(),
                         };
                         // update storage
@@ -142,6 +142,7 @@ impl FE {
                 _ => {}
             }
         }
+        return Some(());
     }
 }
 
@@ -263,10 +264,7 @@ impl eframe::App for FE {
                 self.draw_files(ui);
                 // Create an invisible panel to handle the right-click
                 fill_remainder(ui).context_menu(|ui| {
-                    match get_current_dir_context_menu(ui) {
-                        Some(cmd) => self.commands.emit_event(cmd),
-                        None => (),
-                    };
+                    get_current_dir_context_menu(ui, &mut self.commands);
                 });
             });
         });

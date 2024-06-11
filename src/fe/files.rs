@@ -183,30 +183,22 @@ impl FE {
                     });
                 })
                 .body(|mut body| {
-                    let mut cmd = draw::draw_back_dir_row(
+                    let _cmd = draw::draw_back_dir_row(
                         &mut body,
                         self.path.clone(),
                         self.style.row_height,
                         &self.style,
+                        &mut self.commands,
                     );
 
                     for entry in &self.entries {
-                        match draw::draw_file_row(
+                        draw::draw_file_row(
                             &mut body,
                             entry,
                             self.style.row_height,
                             &self.style,
-                        ) {
-                            Some(path) => cmd = Some(path),
-                            None => (),
-                        }
-                    }
-
-                    if let Some(cmd) = cmd {
-                        // TODO: should we emit events as we draw
-                        // instead of returning an event here?
-                        // (probably)
-                        self.commands.emit_event(cmd);
+                            &mut self.commands,
+                        );
                     }
                 });
         });
