@@ -1,8 +1,10 @@
+use diagnostic::Diagnostic;
 use directories::UserDirs;
 use eframe;
-use egui::{Response, Sense, Ui};
+use egui::{Align2, Response, Sense, Ui, Vec2};
 use std::fs;
 use std::path::PathBuf;
+use std::time::{Instant};
 
 use crate::command::{CommandEvent, CommandPool};
 use crate::storage;
@@ -10,6 +12,7 @@ use crate::utils::dir::{DirSorting, FeEntry, QuickAccessEntry, SortOrder};
 use crate::utils::{self, term};
 
 use self::draw::get_current_dir_context_menu;
+mod diagnostic;
 mod draw;
 mod files;
 mod style;
@@ -39,6 +42,9 @@ pub struct FE {
 
     creating_file: bool,
     new_file_name: String,
+
+    // error diagnostics
+    diagnostics: Vec<Diagnostic>,
 }
 
 impl FE {
@@ -70,6 +76,7 @@ impl FE {
             style: style::Style::default(),
             creating_file: false,
             new_file_name: "".to_owned(),
+            diagnostics: Vec::new(),
         };
 
         fe.load_dir_entries();
@@ -134,7 +141,7 @@ impl FE {
                     match utils::run_exe(&path) {
                         Ok(_) => (),
                         Err(err) => {
-                            // TODO handle errors
+                            self.diagnostics.push(Diagnostic::from_err(&err));
                             println!("error running {:?}: {:?}", &path, err)
                         }
                     };
@@ -143,6 +150,29 @@ impl FE {
             }
         }
         return Some(());
+    }
+
+    fn draw_diagnostics(&mut self, ctx: &egui::Context) {
+        self.diagnostics.retain(|d| d.expires_at > Instant::now());
+
+        if self.diagnostics.is_empty() {
+            return;
+        }
+
+        let window = egui::Window::new("Diagnostics")
+            .title_bar(true)
+            .resizable(false)
+            .constrain(true)
+            .collapsible(false);
+
+        let align = Align2([egui::Align::RIGHT, egui::Align::BOTTOM]);
+        let offset = Vec2::new(-16.0, -16.0);
+        window.anchor(align, offset).show(ctx, |ui| {
+            for diagnostic in &self.diagnostics {
+                ui.label(&diagnostic.message);
+                // TODO: draw a progress bar maybe
+            }
+        });
     }
 }
 
@@ -177,7 +207,9 @@ impl eframe::App for FE {
                             Some(parent) => {
                                 self.set_path(PathBuf::from(parent));
                             }
-                            None => {} // TODO
+                            None => {
+                                self.diagnostics.push(Diagnostic::default("no parent".to_string()));
+                            }
                         }
                     }
 
@@ -300,6 +332,8 @@ impl eframe::App for FE {
                 })
             });
         }
+
+        self.draw_diagnostics(ctx);
 
         // handle events after drawing everything, since
         // the drawing methods may emit events
