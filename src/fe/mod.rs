@@ -4,7 +4,7 @@ use eframe;
 use egui::{Align2, Response, Sense, Ui, Vec2};
 use std::fs;
 use std::path::PathBuf;
-use std::time::{Instant};
+use std::time::Instant;
 
 use crate::command::{CommandEvent, CommandPool};
 use crate::storage;
@@ -138,12 +138,8 @@ impl FE {
                     self.load_dir_entries();
                 }
                 CommandEvent::Run(path) => {
-                    match utils::run_exe(&path) {
-                        Ok(_) => (),
-                        Err(err) => {
-                            self.diagnostics.push(Diagnostic::from_err(&err));
-                            println!("error running {:?}: {:?}", &path, err)
-                        }
+                    if let Err(err) = utils::run_exe(&path) {
+                        self.diagnostics.push(Diagnostic::from_err(&err));
                     };
                 }
                 _ => {}
@@ -208,7 +204,8 @@ impl eframe::App for FE {
                                 self.set_path(PathBuf::from(parent));
                             }
                             None => {
-                                self.diagnostics.push(Diagnostic::default("no parent".to_string()));
+                                self.diagnostics
+                                    .push(Diagnostic::default("no parent".to_string()));
                             }
                         }
                     }

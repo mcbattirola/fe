@@ -1,5 +1,6 @@
 use super::draw;
 use super::FE;
+use crate::fe::diagnostic::Diagnostic;
 use crate::utils;
 use crate::utils::dir::get_sort_icon;
 use crate::utils::dir::DirSortingType;
@@ -68,9 +69,8 @@ impl FE {
             File::create(&new_file_path).map(|_| ())
         };
 
-        match result {
-            Err(err) => println!("error creating file: {:?}", err),
-            _ => (),
+        if let Err(err) = result {
+            self.diagnostics.push(Diagnostic::from_err(&err));
         };
 
         self.creating_file = false;
@@ -95,6 +95,7 @@ impl FE {
                 self.update_sorting(self.dir_sorting.clone());
             }
             Err(err) => {
+                self.diagnostics.push(Diagnostic::from_err(&err));
                 println!("error reading entries: {:?}", err)
             }
         }

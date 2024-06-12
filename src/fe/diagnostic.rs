@@ -16,7 +16,7 @@ impl Diagnostic {
             _start_time: Instant::now(),
         }
     }
-    
+
     pub fn default(message: String) -> Self {
         Self::new(message, Self::DEFAULT_DURATION)
     }
