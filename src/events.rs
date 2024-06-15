@@ -12,7 +12,7 @@ pub enum Modifier {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum CommandEvent {
+pub enum EventType {
     FocusPathBar,
     FocusSearchBar,
     DirGoBack,
@@ -25,43 +25,43 @@ pub enum CommandEvent {
     _Quit,
 }
 
-pub struct Command {
-    event: CommandEvent,
+pub struct Event {
+    event: EventType,
     modifiers: Vec<Modifier>,
     key: Vec<egui::Key>,
 }
 
-pub struct CommandPool {
-    commands: Vec<Command>,
-    events: Vec<CommandEvent>,
+pub struct EventPool {
+    commands: Vec<Event>,
+    events: Vec<EventType>,
 }
 
-impl CommandPool {
+impl EventPool {
     pub fn new() -> Self {
         return Self {
             commands: Vec::from([
-                Command {
-                    event: CommandEvent::FocusPathBar,
+                Event {
+                    event: EventType::FocusPathBar,
                     modifiers: Vec::from([Modifier::Cmd]),
                     key: Vec::from([egui::Key::L]),
                 },
-                Command {
-                    event: CommandEvent::FocusSearchBar,
+                Event {
+                    event: EventType::FocusSearchBar,
                     modifiers: Vec::from([Modifier::Cmd]),
                     key: Vec::from([egui::Key::F]),
                 },
-                Command {
-                    event: CommandEvent::DirGoBack,
+                Event {
+                    event: EventType::DirGoBack,
                     modifiers: Vec::from([Modifier::Cmd]),
                     key: Vec::from([egui::Key::O]),
                 },
-                Command {
-                    event: CommandEvent::FavoriteCurrentPath,
+                Event {
+                    event: EventType::FavoriteCurrentPath,
                     modifiers: Vec::from([Modifier::Cmd]),
                     key: Vec::from([egui::Key::B]),
                 },
-                Command {
-                    event: CommandEvent::NewFile,
+                Event {
+                    event: EventType::NewFile,
                     modifiers: Vec::from([Modifier::Cmd]),
                     key: Vec::from([egui::Key::N]),
                 },
@@ -111,15 +111,15 @@ impl CommandPool {
     }
 
     // returns whether an event of the `event` type was emited
-    pub fn get_event(&self, event: CommandEvent) -> bool {
+    pub fn get_event(&self, event: EventType) -> bool {
         return self.events.contains(&event);
     }
 
-    pub fn get_events(&self) -> Vec<CommandEvent> {
+    pub fn get_events(&self) -> Vec<EventType> {
         return self.events.clone();
     }
 
-    pub fn emit_event(&mut self, event: CommandEvent) {
+    pub fn emit_event(&mut self, event: EventType) {
         println!("emiting event {:?}", event);
         self.events.push(event);
     }

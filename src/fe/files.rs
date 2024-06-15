@@ -189,7 +189,8 @@ impl FE {
                         self.path.clone(),
                         self.style.row_height,
                         &self.style,
-                        &mut self.commands,
+                        &mut self.event_pool,
+                        &self.commands,
                     );
 
                     for entry in &self.entries {
@@ -198,7 +199,8 @@ impl FE {
                             entry,
                             self.style.row_height,
                             &self.style,
-                            &mut self.commands,
+                            &mut self.event_pool,
+                            &self.commands,
                         );
                     }
                 });

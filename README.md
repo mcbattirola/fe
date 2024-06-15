@@ -43,8 +43,11 @@ WIP
   - [x] Delete dir
   - [ ] File Properties
   - [x] Copy path to clipboard
-- [ ] User scripts
-    - [ ] Context menu custom commands/script
+- [ ] Custom user commands
+  - [x] Run commands from config file
+  - [ ] Run scripts relative to config file
+  - [ ] Run scripts with absolute path
+  - [ ] Inoke binary directly (like `brave <file.url>` without having to create a python script for this)
 - [ ] Drag and drop files from/to explorer
 - [ ] Search Bar
 - [ ] Expand env vars in search and path bar

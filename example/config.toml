@@ -1,0 +1,13 @@
+[[commands.file]]
+name = "Open URL"
+interpreter = "python"
+script = "example/open_url.py"
+extensions = ["url"]
+args = []
+
+[[commands.file]]
+name = "Do something with Python"
+interpreter = "python"
+script = "example/printargs.py"
+extensions = ["py", "txt"]
+args = []

@@ -6,10 +6,10 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use crate::command::{CommandEvent, CommandPool};
-use crate::storage;
+use crate::events::{EventPool, EventType};
 use crate::utils::dir::{DirSorting, FeEntry, QuickAccessEntry, SortOrder};
 use crate::utils::{self, term};
+use crate::{cli, commands, storage};
 
 use self::draw::get_current_dir_context_menu;
 mod diagnostic;
@@ -34,8 +34,8 @@ pub struct FE {
     _search_active: bool, // TODO implement search
     search_txt: String,
 
-    // commands and shortcuts
-    commands: CommandPool,
+    // ui events and shortcuts
+    event_pool: EventPool,
 
     // styles
     style: style::Style,
@@ -45,22 +45,26 @@ pub struct FE {
 
     // error diagnostics
     diagnostics: Vec<Diagnostic>,
+
+    // custom commands
+    commands: commands::Commands,
 }
 
 impl FE {
-    pub fn new() -> Self {
+    pub fn new(args: cli::Config) -> Self {
         let dir = std::env::current_dir().unwrap();
         let dir_clone = dir.clone();
 
-        // TODO read dir from CLI/config file
-
-        let mut data_path = home::home_dir().unwrap();
-        data_path.push(".fe/data");
+        let data_path = args.data_dir.unwrap();
         println!("data_path: {:?}", data_path);
         fs::create_dir_all(data_path.parent().unwrap()).expect("cant create data dir");
         let storage = storage::Storage::new(data_path).unwrap();
 
         let quick_access_entries = storage.list_quick_access();
+
+        let commands = commands::parse_commands_config(&args.config_path.unwrap())
+            .expect("error parsing config file");
+        println!("commands: {:?}", commands);
 
         let mut fe = Self {
             path: dir,
@@ -72,11 +76,12 @@ impl FE {
             quick_access: quick_access_entries,
             _search_active: false,
             search_txt: "".to_owned(),
-            commands: CommandPool::new(),
+            event_pool: EventPool::new(),
             style: style::Style::default(),
             creating_file: false,
             new_file_name: "".to_owned(),
             diagnostics: Vec::new(),
+            commands,
         };
 
         fe.load_dir_entries();
@@ -102,14 +107,14 @@ impl FE {
     }
 
     fn handle_events(&mut self, _ctx: &egui::Context) -> Option<()> {
-        let events: Vec<CommandEvent> = self.commands.get_events();
+        let events: Vec<EventType> = self.event_pool.get_events();
 
         for event in events {
             match event {
-                CommandEvent::DirGoBack => {
+                EventType::DirGoBack => {
                     self.go_back_path();
                 }
-                CommandEvent::FavoriteCurrentPath => {
+                EventType::FavoriteCurrentPath => {
                     if !files::is_favorited(&self.path, &self.quick_access) {
                         let entry = QuickAccessEntry {
                             name: self.path.file_name()?.to_os_string(),
@@ -124,20 +129,20 @@ impl FE {
                         self.quick_access.retain(|entry| entry.path != self.path);
                     }
                 }
-                CommandEvent::NewFile => {
+                EventType::NewFile => {
                     self.creating_file = true;
                 }
-                CommandEvent::SetPath(path) => {
+                EventType::SetPath(path) => {
                     self.set_path(path.clone());
                 }
-                CommandEvent::OpenTerminal => {
+                EventType::OpenTerminal => {
                     term::open_terminal(self.path_string.as_str());
                 }
-                CommandEvent::DeleteFile(entry) => {
+                EventType::DeleteFile(entry) => {
                     self.delete_entry(entry);
                     self.load_dir_entries();
                 }
-                CommandEvent::Run(path) => {
+                EventType::Run(path) => {
                     if let Err(err) = utils::run_exe(&path) {
                         self.diagnostics.push(Diagnostic::from_err(&err));
                     };
@@ -174,7 +179,7 @@ impl FE {
 
 impl eframe::App for FE {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        self.commands.emit_input_events(ctx);
+        self.event_pool.emit_input_events(ctx);
         // menu bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
@@ -221,7 +226,7 @@ impl eframe::App for FE {
                         self.load_dir_entries()
                     }
 
-                    if self.commands.get_event(CommandEvent::FocusPathBar) {
+                    if self.event_pool.get_event(EventType::FocusPathBar) {
                         path_input.request_focus();
                     }
 
@@ -234,7 +239,7 @@ impl eframe::App for FE {
 
                     let favorited = files::is_favorited(&self.path, &self.quick_access);
                     if ui.button(if favorited { "🌟" } else { "⭐" }).clicked() {
-                        self.commands.emit_event(CommandEvent::FavoriteCurrentPath);
+                        self.event_pool.emit_event(EventType::FavoriteCurrentPath);
                     }
                 });
 
@@ -243,7 +248,7 @@ impl eframe::App for FE {
                     ui.separator();
                     ui.label("Seach");
                     let search_input = ui.text_edit_singleline(&mut self.search_txt);
-                    if self.commands.get_event(CommandEvent::FocusSearchBar) {
+                    if self.event_pool.get_event(EventType::FocusSearchBar) {
                         search_input.request_focus();
                     }
                 });
@@ -293,7 +298,7 @@ impl eframe::App for FE {
                 self.draw_files(ui);
                 // Create an invisible panel to handle the right-click
                 fill_remainder(ui).context_menu(|ui| {
-                    get_current_dir_context_menu(ui, &mut self.commands);
+                    get_current_dir_context_menu(ui, &mut self.event_pool);
                 });
             });
         });

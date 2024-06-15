@@ -27,6 +27,22 @@ pub struct File {
     pub modified: SystemTime,
 }
 
+impl File {
+    // return the extension of the file
+    pub fn ext(&self) -> Option<&str> {
+        self.path.extension().and_then(|ext| ext.to_str())
+    }
+
+    // check if the file is of any of the given extensions
+    pub fn is_of_ext(&self, extensions: Vec<String>) -> bool {
+        if let Some(file_ext) = self.ext() {
+            extensions.iter().any(|ext| ext == file_ext)
+        } else {
+            false
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EntryKind {
     Dir(Dir),
