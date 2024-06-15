@@ -1,35 +1,54 @@
 use home;
-use std::path::PathBuf;
+use std::{
+    fs::{self, OpenOptions},
+    path::PathBuf,
+};
 use structopt::StructOpt;
 
 /// Command-line arguments struct
 #[derive(Debug, StructOpt)]
-pub struct Config {
+pub struct CliArgs {
     /// Path to the configuration file
     #[structopt(long)]
     pub config_path: Option<PathBuf>,
-
-    /// Path to the data dir parent
-    #[structopt(long)]
-    pub data_dir: Option<PathBuf>,
 }
 
-pub fn parse_args() -> Config {
-    let mut args = Config::from_args();
+pub fn parse_args() -> CliArgs {
+    let mut args = CliArgs::from_args();
 
+    // defaults to $HOME/.fe/config.toml
     let mut default_dir = home::home_dir().unwrap();
     default_dir.push(".fe");
 
     if args.config_path.is_none() {
+        println!("no config file arg");
         let mut default_path = default_dir.clone();
         default_path.push("config.toml");
+        ensure_default(&default_path);
         args.config_path = Some(default_path);
     }
-    if args.data_dir.is_none() {
-        let mut default_path = default_dir.clone();
-        default_path.push("data");
-        args.data_dir = Some(default_path);
+    return args;
+}
+
+pub fn ensure_default(default_config: &PathBuf) {
+    println!("creating {:?}", default_config);
+
+    // Create parent directories if they don't exist
+    if let Some(parent) = default_config.parent() {
+        fs::create_dir_all(parent).expect("can't create config dir");
     }
 
-    return args;
+    // Open the file in write mode, create it if it doesn't exist
+    let file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(default_config);
+
+    match file {
+        Ok(_) => println!("Config file created: {:?}", default_config),
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+            println!("Config file already exists: {:?}", default_config)
+        }
+        Err(e) => panic!("couldn't create config file: {:?}", e),
+    }
 }

@@ -8,6 +8,7 @@ WIP
   - [x] Go to parent
   - [x] Go to previous dir
   - [x] Click to go to directory
+  - [ ] Add a '/' after successfully navigating to a path via path input
 - [ ] Config file
 - [ ] Cards view
   - [ ] Image preview
@@ -47,7 +48,9 @@ WIP
   - [x] Run commands from config file
   - [ ] Run scripts relative to config file
   - [ ] Run scripts with absolute path
-  - [ ] Inoke binary directly (like `brave <file.url>` without having to create a python script for this)
+  - [ ] Param to make file clickable to run script
+- [ ] Config file
+  - [ ] Data dir
 - [ ] Drag and drop files from/to explorer
 - [ ] Search Bar
 - [ ] Expand env vars in search and path bar

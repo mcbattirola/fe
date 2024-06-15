@@ -6,6 +6,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::Instant;
 
+use crate::commands::Commands;
+use crate::config::{parse_commands_config, Config};
 use crate::events::{EventPool, EventType};
 use crate::utils::dir::{DirSorting, FeEntry, QuickAccessEntry, SortOrder};
 use crate::utils::{self, term};
@@ -51,19 +53,24 @@ pub struct FE {
 }
 
 impl FE {
-    pub fn new(args: cli::Config) -> Self {
+    pub fn from_config(config: Config) -> FE {
         let dir = std::env::current_dir().unwrap();
         let dir_clone = dir.clone();
 
-        let data_path = args.data_dir.unwrap();
+        let data_path: PathBuf = config.data_dir.expect("data_path is empty").into();
         println!("data_path: {:?}", data_path);
         fs::create_dir_all(data_path.parent().unwrap()).expect("cant create data dir");
         let storage = storage::Storage::new(data_path).unwrap();
 
         let quick_access_entries = storage.list_quick_access();
 
-        let commands = commands::parse_commands_config(&args.config_path.unwrap())
-            .expect("error parsing config file");
+        let commands = match config.commands {
+            None => Commands {
+                file: None,
+                dir: None,
+            },
+            Some(c) => c,
+        };
         println!("commands: {:?}", commands);
 
         let mut fe = Self {
@@ -87,6 +94,19 @@ impl FE {
         fe.load_dir_entries();
 
         return fe;
+    }
+
+    pub fn from_args(args: cli::CliArgs) -> Self {
+        let config_path = args.config_path.unwrap();
+        let config = parse_commands_config(&config_path);
+        if config.is_err() {
+            panic!(
+                "cannot parse config file {:?}: {:?}",
+                config_path,
+                config.err()
+            );
+        }
+        return FE::from_config(config.unwrap());
     }
 
     pub fn run(self) -> Result<(), eframe::Error> {

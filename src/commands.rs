@@ -40,24 +40,9 @@ impl Command {
     }
 }
 
-/// Represents the overall configuration containing file and directory commands.
-#[derive(Debug, Deserialize)]
-pub struct CommandsConfig {
-    pub commands: Commands,
-}
-
 /// Contains file and directory commands.
 #[derive(Debug, Deserialize)]
 pub struct Commands {
     pub file: Option<Vec<Command>>,
     pub dir: Option<Vec<Command>>,
-}
-
-/// Reads and parses the configuration file from the given path, returning a CommandMap.
-pub fn parse_commands_config(file_path: &PathBuf) -> Result<Commands, Box<dyn std::error::Error>> {
-    let config_str = fs::read_to_string(file_path)?;
-    println!("config_str: {:?}", config_str);
-    let commands_config: CommandsConfig = toml::from_str(&config_str)?;
-    println!("commands_config: {:?}", commands_config);
-    Ok(commands_config.commands)
 }
