@@ -1,10 +1,9 @@
 use serde::Deserialize;
-use std::fs;
 use std::path::PathBuf;
 use std::process::{Command as ProcessCommand, Stdio};
 
 /// Represents a command configuration.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 pub struct Command {
     pub name: String,
     pub interpreter: String,

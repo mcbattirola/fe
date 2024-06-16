@@ -68,7 +68,7 @@ pub fn draw_file_name_cell(
                 let resp = if file.is_exe {
                     let exe = ui.link(RichText::new(name).color(style.colors.exe));
                     if exe.clicked() {
-                        event_pool.emit_event(EventType::Run(entry.path.clone()));
+                        event_pool.emit_event(EventType::Exec(entry.path.clone()));
                     }
                     exe
                 } else {
@@ -157,7 +157,7 @@ pub fn get_file_context_menu(
                 if ui.button("Run").clicked() {
                     close = true;
                     ui.close_menu();
-                    event_pool.emit_event(EventType::Run(entry.path.clone()));
+                    event_pool.emit_event(EventType::Exec(entry.path.clone()));
                 }
             }
         }
@@ -183,30 +183,14 @@ pub fn get_file_context_menu(
         println!("TODO rename file");
     }
 
-    //custom commands
-    match &entry.entry_type {
-        utils::dir::EntryKind::Dir(_) => {
-            if let Some(dir_commands) = commands.dir.as_ref() {
-                for cmd in dir_commands {
+    //custom file commands
+    if let utils::dir::EntryKind::File(file) = &entry.entry_type {
+        if let Some(file_commands) = commands.file.as_ref() {
+            for cmd in file_commands {
+                if !cmd.extensions.is_none() && file.is_of_ext(cmd.extensions.clone().unwrap()) {
                     if ui.button(cmd.name.clone()).clicked() {
-                        println!("Executing command: {}", cmd.name);
-                    }
-                }
-            }
-        }
-        utils::dir::EntryKind::File(file) => {
-            if let Some(file_commands) = commands.file.as_ref() {
-                for cmd in file_commands {
-                    if !cmd.extensions.is_none() && file.is_of_ext(cmd.extensions.clone().unwrap())
-                    {
-                        if ui.button(cmd.name.clone()).clicked() {
-                            // TODO: handle error
-                            // Lets add a new event to emit errors
-                            let res = cmd.run(&file.path);
-                            if res.is_err() {
-                                println!("error running script: {:?}", res);
-                            }
-                        }
+                        event_pool
+                            .emit_event(EventType::RunFileCmd(cmd.clone(), entry.path.clone()))
                     }
                 }
             }
@@ -214,7 +198,7 @@ pub fn get_file_context_menu(
     }
 
     ui.separator();
-    get_current_dir_context_menu(ui, event_pool);
+    get_current_dir_context_menu(ui, event_pool, commands);
 
     if close {
         ui.close_menu();
@@ -222,7 +206,7 @@ pub fn get_file_context_menu(
 }
 
 // context menu for the dir currently being browsed
-pub fn get_current_dir_context_menu(ui: &mut Ui, event_pool: &mut EventPool) {
+pub fn get_current_dir_context_menu(ui: &mut Ui, event_pool: &mut EventPool, commands: &Commands) {
     let mut close = false;
     if ui.button("New File").clicked() {
         close = true;
@@ -231,6 +215,16 @@ pub fn get_current_dir_context_menu(ui: &mut Ui, event_pool: &mut EventPool) {
     if ui.button("Open Terminal").clicked() {
         close = true;
         event_pool.emit_event(EventType::OpenTerminal)
+    }
+
+    // custom dir commands
+    if let Some(dir_commands) = commands.dir.as_ref() {
+        for cmd in dir_commands {
+            if ui.button(cmd.name.clone()).clicked() {
+                close = true;
+                event_pool.emit_event(EventType::RunDirCmd(cmd.clone()));
+            };
+        }
     }
 
     if close {

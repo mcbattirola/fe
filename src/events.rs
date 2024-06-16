@@ -1,5 +1,6 @@
 use egui;
 
+use crate::commands::Command;
 use crate::utils;
 
 #[derive(Debug)]
@@ -21,7 +22,9 @@ pub enum EventType {
     OpenTerminal,
     SetPath(std::path::PathBuf),
     DeleteFile(utils::dir::FeEntry),
-    Run(std::path::PathBuf),
+    Exec(std::path::PathBuf),
+    RunDirCmd(Command),
+    RunFileCmd(Command, std::path::PathBuf),
     _Quit,
 }
 

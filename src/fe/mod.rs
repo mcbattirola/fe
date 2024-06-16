@@ -162,9 +162,19 @@ impl FE {
                     self.delete_entry(entry);
                     self.load_dir_entries();
                 }
-                EventType::Run(path) => {
+                EventType::Exec(path) => {
                     if let Err(err) = utils::run_exe(&path) {
                         self.diagnostics.push(Diagnostic::from_err(&err));
+                    };
+                }
+                EventType::RunFileCmd(cmd, file_path) => {
+                    if let Err(err) = cmd.run(&file_path) {
+                        self.diagnostics.push(Diagnostic::from_err(&err.as_ref()));
+                    };
+                }
+                EventType::RunDirCmd(cmd) => {
+                    if let Err(err) = cmd.run(&self.path) {
+                        self.diagnostics.push(Diagnostic::from_err(&err.as_ref()));
                     };
                 }
                 _ => {}
@@ -318,7 +328,7 @@ impl eframe::App for FE {
                 self.draw_files(ui);
                 // Create an invisible panel to handle the right-click
                 fill_remainder(ui).context_menu(|ui| {
-                    get_current_dir_context_menu(ui, &mut self.event_pool);
+                    get_current_dir_context_menu(ui, &mut self.event_pool, &self.commands);
                 });
             });
         });
