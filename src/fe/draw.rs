@@ -65,12 +65,15 @@ pub fn draw_file_name_cell(
                 }
             }
             utils::dir::EntryKind::File(file) => {
-                let resp = if file.is_exe {
-                    let exe = ui.link(RichText::new(name).color(style.colors.exe));
-                    if exe.clicked() {
-                        event_pool.emit_event(EventType::Exec(entry.path.clone()));
+                let resp = if let Some(e) = file.is_clickable(&commands.file) {
+                    let link = ui.link(RichText::new(name).color(style.colors.exe));
+                    if link.clicked() {
+                        if file.is_exe {
+                            event_pool.emit_event(EventType::Exec(entry.path.clone()));
+                        }
+                        event_pool.emit_event(e);
                     }
-                    exe
+                    link
                 } else {
                     ui.label(name)
                 };

@@ -4,6 +4,7 @@ interpreter = "python"
 script = "example/open_url.py"
 extensions = ["url"]
 args = []
+clickable = true
 
 [[commands.file]]
 name = "Do something with Python"

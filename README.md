@@ -34,7 +34,6 @@ WIP
   - [ ] Ctrl + T -> new tab
   - [ ] Ctrl + [1-9] -> go to tab [1-9]
   - [x] (Ctrl + F) -> Go to search bar
-  - [ ] / -> Go to search bar
 - [ ] Context menu
   - [x] Open terminal here
   - [ ] Copy/paste files
@@ -48,9 +47,12 @@ WIP
   - [x] Run commands from config file
   - [ ] Run scripts relative to config file
   - [ ] Run scripts with absolute path
-  - [ ] Param to make file clickable to run script
-- [ ] Config file
-  - [ ] Data dir
+  - [x] Param to make file clickable to run script
+  - [ ] Allow user to select a color for clickable commands
+- [x] Config file
+  - [x] Data dir
+  - [x] Custom commands
+  - [ ] Customize UI
 - [ ] Drag and drop files from/to explorer
 - [ ] Search Bar
 - [ ] Expand env vars in search and path bar

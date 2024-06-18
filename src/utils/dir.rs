@@ -7,6 +7,9 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 use std::{fs, io};
 
+use crate::commands::FileCommand;
+use crate::events::EventType;
+
 // QuickAccessEntry represents each Quick Access list entry.
 // It is always a directory.
 #[derive(Serialize, Deserialize, Clone)]
@@ -40,6 +43,36 @@ impl File {
         } else {
             false
         }
+    }
+
+    pub fn is_clickable(&self, commands: &Option<Vec<FileCommand>>) -> Option<EventType> {
+        if self.is_exe {
+            return Some(EventType::Exec(self.path.clone()));
+        }
+
+        let cmds = match commands {
+            Some(cmds) => cmds,
+            None => return None,
+        };
+
+        let ext = match self.ext() {
+            Some(ext) => ext.to_string(),
+            None => return None,
+        };
+
+        for cmd in cmds {
+            if cmd.clickable == None {
+                continue;
+            }
+
+            if let Some(exts) = &cmd.extensions {
+                if exts.contains(&ext) {
+                    return Some(EventType::RunFileCmd(cmd.clone(), self.path.clone()));
+                }
+            }
+        }
+
+        return None;
     }
 }
 
