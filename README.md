@@ -14,8 +14,6 @@ WIP
   - [ ] Image preview
 - [ ] File actions
   - [x] Run executables
-  - [ ] Open URL
-  - [ ] Open as text
 - [ ] UI improvements
   - [ ] Hover effect
   - [ ] Mouse cursor on hover
@@ -37,7 +35,7 @@ WIP
 - [ ] Context menu
   - [x] Open terminal here
   - [ ] Copy/paste files
-  - [ ] Create file
+  - [x] Create file
    - [x] Create full path
   - [x] Delete file
   - [x] Delete dir
@@ -48,7 +46,9 @@ WIP
   - [ ] Run scripts relative to config file
   - [ ] Run scripts with absolute path
   - [x] Param to make file clickable to run script
-  - [ ] Allow user to select a color for clickable commands
+  - [ ] Allow users to select a color for clickable commands
+  - [ ] Allow users to create submenu inside their command
+  - [ ] Print command's stdout/stderr in the screen
 - [x] Config file
   - [x] Data dir
   - [x] Custom commands
@@ -62,12 +62,10 @@ WIP
     - [ ] Perms
     - [x] Size
   - [x] Select order
-  - [ ] Show/hide dot files
-  - [ ] Show/hide git ignored files
 - [ ] Check actions permissions
   - [ ] Disable file operations if no perm, etc
-- [ ] Error handling
-  - [ ] Fix all the "TODO: handle error" annotations
-  - [ ] Report errors to users
+- [x] Error handling
+  - [x] Fix all the "TODO: handle error" annotations
+  - [x] Report errors to users
 - [ ] Allow opening two FE (use SQLite or LMDB)
 - [ ] Test coverage
