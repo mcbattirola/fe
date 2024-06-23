@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 use crate::commands::Commands;
-use crate::config::{parse_commands_config, Config};
+use crate::config::{parse_config, Config};
 use crate::events::{EventPool, EventType};
 use crate::utils::dir::{DirSorting, FeEntry, QuickAccessEntry, SortOrder};
 use crate::utils::{self, term};
@@ -98,7 +98,7 @@ impl FE {
 
     pub fn from_args(args: cli::CliArgs) -> Self {
         let config_path = args.config_path.unwrap();
-        let config = parse_commands_config(&config_path);
+        let config = parse_config(&config_path);
         if config.is_err() {
             panic!(
                 "cannot parse config file {:?}: {:?}",

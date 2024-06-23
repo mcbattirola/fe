@@ -9,7 +9,7 @@ WIP
   - [x] Go to previous dir
   - [x] Click to go to directory
   - [ ] Add a '/' after successfully navigating to a path via path input
-- [ ] Config file
+- [x] Config file
 - [ ] Cards view
   - [ ] Image preview
 - [ ] File actions
@@ -43,8 +43,8 @@ WIP
   - [x] Copy path to clipboard
 - [ ] Custom user commands
   - [x] Run commands from config file
-  - [ ] Run scripts relative to config file
-  - [ ] Run scripts with absolute path
+  - [x] Run scripts relative to config file
+  - [x] Run scripts with absolute path
   - [x] Param to make file clickable to run script
   - [ ] Allow users to select a color for clickable commands
   - [ ] Allow users to create submenu inside their command
