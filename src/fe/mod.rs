@@ -3,7 +3,7 @@ use directories::UserDirs;
 use eframe;
 use egui::{Align2, Response, Sense, Ui, Vec2};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{PathBuf, MAIN_SEPARATOR};
 use std::time::Instant;
 
 use crate::commands::Commands;
@@ -246,6 +246,7 @@ impl eframe::App for FE {
                     }
 
                     ui.label("Path");
+
                     let path_input = ui.text_edit_singleline(&mut self.path_string);
 
                     // on 'enter' key press
@@ -253,7 +254,22 @@ impl eframe::App for FE {
                         // keep focus after enter
                         path_input.request_focus();
                         // change path
-                        self.load_dir_entries()
+                        self.load_dir_entries();
+                        // append a '/' at the end of the path string
+                        if !self.path_string.ends_with(MAIN_SEPARATOR) {
+                            self.path_string.push(MAIN_SEPARATOR);
+                            
+                            // move cursor to last position
+                            if let Some(mut state) = egui::TextEdit::load_state(ui.ctx(), path_input.id) {
+                                let ccursor = egui::text::CCursor::new(self.path_string.chars().count());
+                                state
+                                    .cursor
+                                    .set_char_range(Some(egui::text::CCursorRange::one(ccursor)));
+                                state.store(ui.ctx(), path_input.id);
+                                ui.ctx().memory_mut(|mem| mem.request_focus(path_input.id));
+                            }
+                        }
+                        
                     }
 
                     if self.event_pool.get_event(EventType::FocusPathBar) {

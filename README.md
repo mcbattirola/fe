@@ -8,11 +8,11 @@ WIP
   - [x] Go to parent
   - [x] Go to previous dir
   - [x] Click to go to directory
-  - [ ] Add a '/' after successfully navigating to a path via path input
+  - [x] Add a '/' after successfully navigating to a path via path input
 - [x] Config file
 - [ ] Cards view
   - [ ] Image preview
-- [ ] File actions
+- [x] File actions
   - [x] Run executables
 - [ ] UI improvements
   - [ ] Hover effect
