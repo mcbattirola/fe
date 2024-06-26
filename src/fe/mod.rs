@@ -24,6 +24,8 @@ pub struct FE {
     path: std::path::PathBuf,
     path_string: String,
     entries: Vec<FeEntry>,
+    display_entries: Vec<FeEntry>,
+
     prev_path: Option<std::path::PathBuf>,
     dir_sorting: DirSorting,
 
@@ -32,8 +34,6 @@ pub struct FE {
     quick_access: Vec<QuickAccessEntry>,
 
     // search state
-    // TODO use an Option<String> as search instead of String + bool
-    _search_active: bool, // TODO implement search
     search_txt: String,
 
     // ui events and shortcuts
@@ -53,7 +53,7 @@ pub struct FE {
 }
 
 impl FE {
-    pub fn from_config(config: Config) -> FE {
+    pub fn from_config(config: Config) -> Self {
         let dir = std::env::current_dir().unwrap();
         let dir_clone = dir.clone();
 
@@ -76,11 +76,11 @@ impl FE {
             path: dir,
             path_string: dir_clone.to_str().unwrap().to_owned(),
             entries: Vec::new(),
+            display_entries: Vec::new(),
             prev_path: None,
             dir_sorting: DirSorting::FileNameAlphabetically(SortOrder::Asc),
             storage: storage,
             quick_access: quick_access_entries,
-            _search_active: false,
             search_txt: "".to_owned(),
             event_pool: EventPool::new(),
             style: style::Style::default(),
@@ -125,6 +125,18 @@ impl FE {
         self
     }
 
+    fn update_display_entries(&mut self) {
+        self.display_entries = match self.search_txt.as_str() {
+            "" => self.entries.clone(),
+            _ => self
+                .entries
+                .iter()
+                .filter(|e| e.name.to_string_lossy().contains(&self.search_txt))
+                .cloned()
+                .collect(),
+        };
+    }
+
     fn handle_events(&mut self, _ctx: &egui::Context) -> Option<()> {
         let events: Vec<EventType> = self.event_pool.get_events();
 
@@ -152,7 +164,6 @@ impl FE {
                     self.creating_file = true;
                 }
                 EventType::SetPath(path) => {
-                    self.search_txt = String::new();
                     self.set_path(path.clone());
                 }
                 EventType::OpenTerminal => {
@@ -299,6 +310,9 @@ impl eframe::App for FE {
                     let search_input = ui.text_edit_singleline(&mut self.search_txt);
                     if self.event_pool.get_event(EventType::FocusSearchBar) {
                         search_input.request_focus();
+                    }
+                    if search_input.changed() {
+                       self.update_display_entries();
                     }
                 });
             });

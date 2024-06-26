@@ -21,6 +21,7 @@ impl FE {
         self.prev_path = Some(self.path.clone());
         self.path = path;
         self.path_string = self.path.to_str().unwrap().to_owned();
+        self.search_txt = String::new();
         self.load_dir_entries();
     }
 
@@ -100,6 +101,7 @@ impl FE {
                 println!("error reading entries: {:?}", err)
             }
         }
+        self.update_display_entries();
     }
 
     // update the sorting without reloading files from the file system
@@ -111,16 +113,6 @@ impl FE {
 
     // drawing
     pub fn draw_files(&mut self, ui: &mut egui::Ui) {
-        let entries = match self.search_txt.as_str() {
-            "" => self.entries.clone(),
-            _ => self
-                .entries
-                .iter()
-                .filter(|e| e.name.to_string_lossy().contains(&self.search_txt))
-                .cloned()
-                .collect(),
-        };
-
         ui.vertical(|ui| {
             let mut table = TableBuilder::new(ui)
                 .striped(true)
@@ -204,7 +196,7 @@ impl FE {
                         &self.commands,
                     );
 
-                    for entry in &entries {
+                    for entry in &self.display_entries {
                         draw::draw_file_row(
                             &mut body,
                             entry,
