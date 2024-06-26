@@ -24,7 +24,7 @@ WIP
   - [x] Different color on executables
 - [ ] Data persistence
   - [x] Pinned / Favorites
-    - [ ] TODO: make desktop and home part of the favorites (not hardcoded)
+    - [ ] make desktop and home part of the favorites (not hardcoded)
   - [ ] Subscribe to changes
 - [ ] New Tabs
 - [ ] Shortcuts
@@ -54,7 +54,7 @@ WIP
   - [x] Custom commands
   - [ ] Customize UI
 - [ ] Drag and drop files from/to explorer
-- [ ] Search Bar
+- [x] Search Bar
 - [ ] Expand env vars in search and path bar
 - [ ] Files view
   - [ ] Show additional info

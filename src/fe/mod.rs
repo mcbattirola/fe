@@ -71,7 +71,6 @@ impl FE {
             },
             Some(c) => c,
         };
-        println!("commands: {:?}", commands);
 
         let mut fe = Self {
             path: dir,
@@ -153,6 +152,7 @@ impl FE {
                     self.creating_file = true;
                 }
                 EventType::SetPath(path) => {
+                    self.search_txt = String::new();
                     self.set_path(path.clone());
                 }
                 EventType::OpenTerminal => {
@@ -254,14 +254,18 @@ impl eframe::App for FE {
                         // keep focus after enter
                         path_input.request_focus();
                         // change path
-                        self.load_dir_entries();
+                        self.event_pool
+                            .emit_event(EventType::SetPath(self.path_string.clone().into()));
                         // append a '/' at the end of the path string
                         if !self.path_string.ends_with(MAIN_SEPARATOR) {
                             self.path_string.push(MAIN_SEPARATOR);
-                            
+
                             // move cursor to last position
-                            if let Some(mut state) = egui::TextEdit::load_state(ui.ctx(), path_input.id) {
-                                let ccursor = egui::text::CCursor::new(self.path_string.chars().count());
+                            if let Some(mut state) =
+                                egui::TextEdit::load_state(ui.ctx(), path_input.id)
+                            {
+                                let ccursor =
+                                    egui::text::CCursor::new(self.path_string.chars().count());
                                 state
                                     .cursor
                                     .set_char_range(Some(egui::text::CCursorRange::one(ccursor)));
@@ -269,7 +273,6 @@ impl eframe::App for FE {
                                 ui.ctx().memory_mut(|mem| mem.request_focus(path_input.id));
                             }
                         }
-                        
                     }
 
                     if self.event_pool.get_event(EventType::FocusPathBar) {
@@ -279,8 +282,8 @@ impl eframe::App for FE {
                     if ui.button("Go").clicked() {
                         // focus path input
                         path_input.request_focus();
-                        // change path
-                        self.load_dir_entries()
+                        self.event_pool
+                            .emit_event(EventType::SetPath(self.path_string.clone().into()));
                     }
 
                     let favorited = files::is_favorited(&self.path, &self.quick_access);

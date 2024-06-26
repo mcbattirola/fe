@@ -78,7 +78,8 @@ impl FE {
         self.load_dir_entries();
     }
 
-    // load the files of current dir
+    // load the files of current dir. Prefer calling set_path if updating the path,
+    // use this only for reloading the current directory's files.
     pub fn load_dir_entries(&mut self) {
         self.path = PathBuf::from(&self.path_string);
         let mut entries = Vec::new();
@@ -110,6 +111,16 @@ impl FE {
 
     // drawing
     pub fn draw_files(&mut self, ui: &mut egui::Ui) {
+        let entries = match self.search_txt.as_str() {
+            "" => self.entries.clone(),
+            _ => self
+                .entries
+                .iter()
+                .filter(|e| e.name.to_string_lossy().contains(&self.search_txt))
+                .cloned()
+                .collect(),
+        };
+
         ui.vertical(|ui| {
             let mut table = TableBuilder::new(ui)
                 .striped(true)
@@ -193,7 +204,7 @@ impl FE {
                         &self.commands,
                     );
 
-                    for entry in &self.entries {
+                    for entry in &entries {
                         draw::draw_file_row(
                             &mut body,
                             entry,
