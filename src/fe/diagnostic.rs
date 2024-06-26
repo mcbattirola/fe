@@ -7,7 +7,7 @@ pub struct Diagnostic {
 }
 
 impl Diagnostic {
-    const DEFAULT_DURATION: Duration = Duration::from_secs(5);
+    const DEFAULT_DURATION: Duration = Duration::from_secs(4);
 
     pub fn new(message: String, duration: Duration) -> Self {
         Self {
