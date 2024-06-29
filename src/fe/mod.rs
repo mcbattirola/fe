@@ -54,15 +54,15 @@ pub struct FE {
 
 impl FE {
     pub fn from_config(config: Config) -> Self {
-        let dir = std::env::current_dir().unwrap();
-        let dir_clone = dir.clone();
+        let path = std::env::current_dir().unwrap();
+        let path_string = path.clone().to_str().unwrap().to_owned();
 
         let data_path: PathBuf = config.data_dir.expect("data_path is empty").into();
         println!("data_path: {:?}", data_path);
         fs::create_dir_all(data_path.parent().unwrap()).expect("cant create data dir");
         let storage = storage::Storage::new(data_path).unwrap();
 
-        let quick_access_entries = storage.list_quick_access();
+        let quick_access_entries = storage.list_quick_access().unwrap();
 
         let commands = match config.commands {
             None => Commands {
@@ -73,8 +73,8 @@ impl FE {
         };
 
         let mut fe = Self {
-            path: dir,
-            path_string: dir_clone.to_str().unwrap().to_owned(),
+            path,
+            path_string,
             entries: Vec::new(),
             display_entries: Vec::new(),
             prev_path: None,
@@ -152,11 +152,15 @@ impl FE {
                             path: self.path.clone(),
                         };
                         // update storage
-                        self.storage.save_quick_access(entry.clone());
+                        if let Err(err) = self.storage.save_quick_access(&entry) {
+                            self.diagnostics.push(Diagnostic::from_err(&err));
+                        }
                         // update memory
                         self.quick_access.push(entry);
                     } else {
-                        self.storage.remove_quick_access(&self.path);
+                        if let Err(err) = self.storage.remove_quick_access(&self.path) {
+                            self.diagnostics.push(Diagnostic::from_err(&err));
+                        }
                         self.quick_access.retain(|entry| entry.path != self.path);
                     }
                 }
@@ -312,7 +316,7 @@ impl eframe::App for FE {
                         search_input.request_focus();
                     }
                     if search_input.changed() {
-                       self.update_display_entries();
+                        self.update_display_entries();
                     }
                 });
             });
