@@ -68,4 +68,5 @@ WIP
   - [x] Fix all the "TODO: handle error" annotations
   - [x] Report errors to users
 - [ ] Allow opening two FE (use SQLite or LMDB)
+- [ ] Don't open terminal on release
 - [ ] Test coverage
