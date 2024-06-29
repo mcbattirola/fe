@@ -28,7 +28,7 @@ pub fn parse_config(file_path: &PathBuf) -> Result<Config, Box<dyn std::error::E
         for file_cmds in &mut cmds.file {
             for cmd in file_cmds {
                 let script_path = Path::new(&cmd.script);
-                if !script_path.is_absolute() {
+                if script_path.exists() && !script_path.is_absolute() {
                     let absolute_path = base_path.join(script_path);
                     cmd.script = absolute_path.to_string_lossy().into_owned();
                 }
@@ -37,7 +37,7 @@ pub fn parse_config(file_path: &PathBuf) -> Result<Config, Box<dyn std::error::E
         for dir_cmds in &mut cmds.dir {
             for cmd in dir_cmds {
                 let script_path = Path::new(&cmd.script);
-                if !script_path.is_absolute() {
+                if script_path.exists() && !script_path.is_absolute() {
                     let absolute_path = base_path.join(script_path);
                     cmd.script = absolute_path.to_string_lossy().into_owned();
                 }
