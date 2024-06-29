@@ -16,13 +16,8 @@ pub struct CliArgs {
 pub fn parse_args() -> CliArgs {
     let mut args = CliArgs::from_args();
 
-    // defaults to $HOME/.fe/config.toml
-    let mut default_dir = home::home_dir().unwrap();
-    default_dir.push(".fe");
-
     if args.config_path.is_none() {
-        println!("no config file arg");
-        let mut default_path = default_dir.clone();
+        let mut default_path = get_fe_dir();
         default_path.push("config.toml");
         ensure_default(&default_path);
         args.config_path = Some(default_path);
@@ -51,4 +46,12 @@ pub fn ensure_default(default_config: &PathBuf) {
         }
         Err(e) => panic!("couldn't create config file: {:?}", e),
     }
+}
+
+pub fn get_fe_dir() -> PathBuf {
+    // defaults to $HOME/.config/fe/config.toml
+    // TODO: respect XDG_CONFIG_HOME
+    let mut default_dir = home::home_dir().unwrap();
+    default_dir.push(".config/fe");
+    return default_dir;
 }

@@ -2,7 +2,7 @@ use std::{fs, path::Path, path::PathBuf};
 
 use serde::Deserialize;
 
-use crate::commands::Commands;
+use crate::{cli::get_fe_dir, commands::Commands};
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
@@ -15,12 +15,8 @@ pub fn parse_config(file_path: &PathBuf) -> Result<Config, Box<dyn std::error::E
     let config_str = fs::read_to_string(file_path)?;
     let mut config: Config = toml::from_str(&config_str)?;
 
-    let mut home = home::home_dir().unwrap();
-    home.push(".fe");
-    let fe_home = home.clone();
-
     if config.data_dir.is_none() {
-        let mut data_dir = fe_home.clone();
+        let mut data_dir = get_fe_dir();
         data_dir.push("data");
         config.data_dir = Some(data_dir.to_string_lossy().to_string());
     }
