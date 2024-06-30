@@ -11,7 +11,6 @@ use egui_extras::TableBody;
 pub fn draw_back_dir_row(
     body: &mut TableBody,
     current_path: PathBuf,
-    row_height: f32,
     style: &style::Style,
     event_pool: &mut EventPool,
     commands: &Commands,
@@ -22,19 +21,18 @@ pub fn draw_back_dir_row(
         path,
         entry_type: utils::dir::EntryKind::Dir(utils::dir::Dir {}),
     };
-    draw_file_row(body, &entry, row_height, style, event_pool, commands);
+    draw_file_row(body, &entry, style, event_pool, commands);
     return Some(());
 }
 
 pub fn draw_file_row(
     body: &mut TableBody,
     entry: &FeEntry,
-    row_height: f32,
     style: &style::Style,
     event_pool: &mut EventPool,
     commands: &Commands,
 ) {
-    body.row(row_height, |mut row| {
+    body.row(style.row_height, |mut row| {
         row.col(|ui| draw_file_name_cell(ui, &entry, style, event_pool, commands));
         row.col(|ui| draw_file_size_cell(ui, &entry, event_pool, commands));
         row.col(|ui| draw_last_modified_cell(ui, &entry, event_pool, commands));
