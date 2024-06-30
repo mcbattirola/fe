@@ -4,7 +4,7 @@ WIP
 
 ## TODO
 
-- [ ] Path navigation
+- [x] Path navigation
   - [x] Go to parent
   - [x] Go to previous dir
   - [x] Click to go to directory
@@ -36,7 +36,7 @@ WIP
   - [x] Open terminal here
   - [ ] Copy/paste files
   - [x] Create file
-   - [x] Create full path
+  - [x] Create full path
   - [x] Delete file
   - [x] Delete dir
   - [ ] File Properties
@@ -67,6 +67,6 @@ WIP
 - [x] Error handling
   - [x] Fix all the "TODO: handle error" annotations
   - [x] Report errors to users
-- [ ] Allow opening two FE (use SQLite or LMDB)
-- [ ] Don't open terminal on release
+- [x] Allow opening two FE (use SQLite or LMDB)
+- [x] Don't open terminal on release
 - [ ] Test coverage
