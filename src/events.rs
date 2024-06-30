@@ -25,6 +25,7 @@ pub enum EventType {
     Exec(std::path::PathBuf),
     RunDirCmd(DirCommand),
     RunFileCmd(FileCommand, std::path::PathBuf),
+    ReloadDir,
     _Quit,
 }
 
@@ -67,6 +68,11 @@ impl EventPool {
                     event: EventType::NewFile,
                     modifiers: Vec::from([Modifier::Cmd]),
                     key: Vec::from([egui::Key::N]),
+                },
+                Event {
+                    event: EventType::ReloadDir,
+                    modifiers: Vec::from([Modifier::Cmd]),
+                    key: Vec::from([egui::Key::R]),
                 },
             ]),
             events: Vec::new(),

@@ -192,6 +192,9 @@ impl FE {
                         self.diagnostics.push(Diagnostic::from_err(&err.as_ref()));
                     };
                 }
+                EventType::ReloadDir => {
+                    self.set_path(self.path.clone());
+                }
                 _ => {}
             }
         }
