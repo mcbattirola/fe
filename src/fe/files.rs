@@ -36,19 +36,17 @@ impl FE {
         }
     }
 
-    pub fn delete_entry(&self, entry: FeEntry) {
+    pub fn delete_entry(&mut self, entry: FeEntry) {
         match entry.entry_type {
             utils::dir::EntryKind::Dir(_) => {
-                fs::remove_dir_all(entry.path).unwrap_or_else(|err| {
-                    println!("error removing file: {:?}", err);
-                    // TODO: Add error to self.diagnostics here
-                });
+                if let Err(err) = fs::remove_dir_all(entry.path) {
+                    self.diagnostics.push(Diagnostic::from_err(&err));
+                }
             }
             utils::dir::EntryKind::File(_) => {
-                fs::remove_file(entry.path).unwrap_or_else(|err| {
-                    println!("error removing file: {:?}", err);
-                    // TODO: Add error to self.diagnostics here
-                });
+                if let Err(err) = fs::remove_file(entry.path) {
+                    self.diagnostics.push(Diagnostic::from_err(&err));
+                }
             }
         }
     }
@@ -190,7 +188,6 @@ impl FE {
                     let _cmd = draw::draw_back_dir_row(
                         &mut body,
                         self.path.clone(),
-                        self.style.row_height,
                         &self.style,
                         &mut self.event_pool,
                         &self.commands,
@@ -200,7 +197,6 @@ impl FE {
                         draw::draw_file_row(
                             &mut body,
                             entry,
-                            self.style.row_height,
                             &self.style,
                             &mut self.event_pool,
                             &self.commands,

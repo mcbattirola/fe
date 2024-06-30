@@ -171,7 +171,9 @@ impl FE {
                     self.set_path(path.clone());
                 }
                 EventType::OpenTerminal => {
-                    term::open_terminal(self.path_string.as_str());
+                    if let Some(err) = term::open_terminal(self.path_string.as_str()) {
+                        self.diagnostics.push(Diagnostic::from_err(&err));
+                    };
                 }
                 EventType::DeleteFile(entry) => {
                     self.delete_entry(entry);

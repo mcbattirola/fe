@@ -1,30 +1,33 @@
 use std::process::Command;
 
-// TODO: return errors
 #[cfg(target_os = "windows")]
-pub fn open_terminal(path: &str) {
+pub fn open_terminal(path: &str) -> Option<std::io::Error> {
     if let Err(e) = Command::new("cmd.exe")
         .args(&["/C", "start", "cmd.exe", "/K", &format!("cd /D {}", path)])
         .spawn()
     {
-        eprintln!("Failed to open cmd.exe: {}", e);
+        return Some(e);
     }
+    return None;
 }
 
 #[cfg(target_os = "macos")]
-pub fn open_terminal(path: &str) {
+pub fn open_terminal(path: &str) -> Option<std::io::Error> {
     if let Err(e) = Command::new("open")
         .arg("-a")
         .arg("Terminal")
         .arg(path)
         .spawn()
     {
-        eprintln!("Failed to open Terminal: {}", e);
+        return Some(e);
     }
+    return None;
 }
 
 #[cfg(target_os = "linux")]
-pub fn open_terminal(path: &str) {
+use std::io::{Error, ErrorKind};
+#[cfg(target_os = "linux")]
+pub fn open_terminal(path: &str) -> Option<std::io::Error> {
     // TODO: this whole thing needs to be improved.
     // Allacrity, for instance, should have --hold to persist
     // if we close the app.
@@ -37,14 +40,15 @@ pub fn open_terminal(path: &str) {
         ("xterm", "-e"),
         ("terminator", "-p"),
         ("urxvt", "-cd"),
-        // TODO: st
+        // TODO:
+        // - st
     ];
 
     for (terminal, arg) in &terminals {
         if let Ok(_child) = Command::new(terminal).arg(arg).arg(path).spawn() {
-            return;
+            return None;
         }
     }
 
-    eprintln!("Failed to open any terminal emulator.");
+    Some(Error::new(ErrorKind::Other, "failed to open terminal"))
 }
