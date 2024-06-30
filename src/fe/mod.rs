@@ -13,7 +13,7 @@ use crate::utils::dir::{DirSorting, FeEntry, QuickAccessEntry, SortOrder};
 use crate::utils::{self, term};
 use crate::{cli, commands, storage};
 
-use self::draw::get_current_dir_context_menu;
+use self::draw::file::get_current_dir_context_menu;
 mod diagnostic;
 mod draw;
 mod files;
@@ -53,6 +53,7 @@ pub struct FE {
 }
 
 impl FE {
+    // creates FE from Config (usually parsed from a config file)
     pub fn from_config(config: Config) -> Self {
         let path = std::env::current_dir().unwrap();
         let path_string = path.clone().to_str().unwrap().to_owned();
@@ -95,6 +96,7 @@ impl FE {
         return fe;
     }
 
+    // creates FE from CliArgs
     pub fn from_args(args: cli::CliArgs) -> Self {
         let config_path = args.config_path.unwrap();
         let config = parse_config(&config_path);
@@ -138,9 +140,7 @@ impl FE {
     }
 
     fn handle_events(&mut self, _ctx: &egui::Context) -> Option<()> {
-        let events: Vec<EventType> = self.event_pool.get_events();
-
-        for event in events {
+        for event in self.event_pool.get_events() {
             match event {
                 EventType::DirGoBack => {
                     self.go_back_path();

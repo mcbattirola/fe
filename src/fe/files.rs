@@ -185,7 +185,7 @@ impl FE {
                     });
                 })
                 .body(|mut body| {
-                    let _cmd = draw::draw_back_dir_row(
+                    let _cmd = draw::file::draw_back_dir_row(
                         &mut body,
                         self.path.clone(),
                         &self.style,
@@ -194,7 +194,7 @@ impl FE {
                     );
 
                     for entry in &self.display_entries {
-                        draw::draw_file_row(
+                        draw::file::draw_file_row(
                             &mut body,
                             entry,
                             &self.style,
