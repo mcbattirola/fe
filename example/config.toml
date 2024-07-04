@@ -7,7 +7,7 @@ args = []
 clickable = true
 
 [[commands.file]]
-name = "Do something with Python"
+name = "Print File Name"
 interpreter = "python"
 # relative to config file or absolute
 script = "printargs.py"
