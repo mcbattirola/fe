@@ -70,7 +70,6 @@ Make sure you use double backlashes on Windows paths.
   - [x] Pinned / Favorites
     - [ ] make desktop and home part of the favorites (not hardcoded)
   - [ ] Subscribe to changes between multiple processes
-- [ ] New Tabs
 - [ ] Tabs
   - [ ] Ctrl + T -> new tab
   - [ ] Ctrl + [1-9] -> go to tab [1-9]
