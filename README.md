@@ -92,4 +92,3 @@ Make sure you use double backlashes on Windows paths.
   - [ ] Show visually that file is a symlink
 - [ ] Handle signals
 - [ ] Improve Test coverage
-- [ ] Remove unwraps
