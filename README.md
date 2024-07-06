@@ -87,4 +87,7 @@ Make sure you use double backlashes on Windows paths.
   - [ ] Add cards view with image previews
 - [ ] Check actions permissions
   - [ ] Disable file operations if no perm, etc
+- [ ] Handle symlinks properly
+- [ ] Handle signals
 - [ ] Improve Test coverage
+- [ ] Remove unwraps
