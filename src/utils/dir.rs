@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::ffi::OsString;
+use std::os::unix::fs::PermissionsExt;
 #[cfg(target_os = "unix")]
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;

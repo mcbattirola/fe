@@ -63,7 +63,9 @@ impl FE {
             fs::create_dir_all(new_file_path)
         } else {
             if let Some(parent) = new_file_path.parent() {
-                fs::create_dir_all(parent).unwrap();
+                if let Err(err) = fs::create_dir_all(parent) {
+                    self.diagnostics.push(Diagnostic::from_err(&err))
+                }
             }
             File::create(&new_file_path).map(|_| ())
         };

@@ -375,7 +375,10 @@ impl eframe::App for FE {
                         };
                         if ui.link("📺 Desktop").clicked() {
                             if let Some(user_dirs) = UserDirs::new() {
-                                self.set_path(user_dirs.desktop_dir().unwrap().to_path_buf());
+                                match user_dirs.desktop_dir() {
+                                    Some(dir) => self.set_path(dir.to_path_buf()),
+                                    None => println!("no desktop dir found"),
+                                }
                             }
                         }
 

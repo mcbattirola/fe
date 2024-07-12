@@ -94,4 +94,8 @@ Make sure you use double backlashes on Windows paths.
   - [ ] Add cards view with image previews
 - [ ] Check actions permissions
   - [ ] Disable file operations if no perm, etc
+- [ ] Handle symlinks properly
+  - [ ] Show symlink as dir or file, based on the pointed file
+  - [ ] Show visually that file is a symlink
+- [ ] Handle signals
 - [ ] Improve Test coverage

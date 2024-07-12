@@ -48,12 +48,10 @@ fn run(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut command = ProcessCommand::new(interpreter);
 
-    // Add interpreter arguments if any
     if let Some(args) = args {
         command.args(args);
     }
 
-    // Add script path if provided and not empty
     if !script.is_empty() {
         command.arg(script);
     }
@@ -65,12 +63,10 @@ fn run(
     #[cfg(unix)]
     {
         use std::os::unix::process::CommandExt;
-        command.before_exec(|| {
-            unsafe {
-                libc::setsid();
-            }
-            Ok(())
-        });
+        unsafe {
+            command.pre_exec(|| Ok(()));
+            libc::setsid();
+        }
     }
 
     #[cfg(windows)]
@@ -79,7 +75,6 @@ fn run(
         command.creation_flags(winapi::um::winbase::CREATE_NEW_PROCESS_GROUP);
     }
 
-    // Run the command
     command
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
