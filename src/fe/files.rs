@@ -77,6 +77,12 @@ impl FE {
         self.load_dir_entries();
     }
 
+    pub fn move_file(&mut self, origin: &PathBuf, dest: &PathBuf) {
+        if let Err(err) = fs::rename(origin, dest) {
+            self.diagnostics.push(Diagnostic::from_err(&err))
+        }
+    }
+
     // load the files of current dir. Prefer calling set_path if updating the path,
     // use this only for reloading the current directory's files.
     pub fn load_dir_entries(&mut self) {

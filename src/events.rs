@@ -1,4 +1,4 @@
-use egui;
+use egui::{self, DroppedFile};
 
 use crate::commands::{DirCommand, FileCommand};
 use crate::utils;
@@ -25,6 +25,7 @@ pub enum EventType {
     Exec(std::path::PathBuf),
     RunDirCmd(DirCommand),
     RunFileCmd(FileCommand, std::path::PathBuf),
+    MoveFile(u8, Vec<DroppedFile>),
     ReloadDir,
     _Quit,
 }
@@ -38,6 +39,7 @@ pub struct Event {
 pub struct EventPool {
     commands: Vec<Event>,
     events: Vec<EventType>,
+    next_frame_events: Vec<EventType>,
 }
 
 impl EventPool {
@@ -76,14 +78,20 @@ impl EventPool {
                 },
             ]),
             events: Vec::new(),
+            next_frame_events: Vec::new(),
         };
+    }
+
+    // clear the events and sends the events scheduled for the next frame
+    pub fn flush_events(&mut self) {
+        self.events = self.next_frame_events.clone();
+        self.next_frame_events = Vec::new();
     }
 
     // reads the inputs and emits events for issued commands.
     // Should be called before handling events each frame.
     pub fn emit_input_events(&mut self, ctx: &egui::Context) {
         // flush last frame's events
-        self.events = Vec::new();
         let mut events_to_emit = Vec::new();
 
         'cmd_loop: for cmd in &self.commands {
@@ -106,7 +114,7 @@ impl EventPool {
                         Modifier::Cmd => i.modifiers.command,
                     };
                 }) {
-                    println!("dodnt found {:?}", cmd.modifiers);
+                    println!("didn't found {:?}", cmd.modifiers);
                     continue 'cmd_loop;
                 }
             }
@@ -131,5 +139,10 @@ impl EventPool {
     pub fn emit_event(&mut self, event: EventType) {
         println!("emiting event {:?}", event);
         self.events.push(event);
+    }
+
+    // schedules an event to be emited next time the events are flushed
+    pub fn schedule_event(&mut self, event: EventType) {
+        self.next_frame_events.push(event);
     }
 }

@@ -1,6 +1,6 @@
 use diagnostic::Diagnostic;
 use directories::UserDirs;
-use eframe;
+use eframe::{self};
 use egui::{Align2, Response, Sense, Ui, Vec2};
 use std::fs;
 use std::path::{PathBuf, MAIN_SEPARATOR};
@@ -139,7 +139,7 @@ impl FE {
         };
     }
 
-    fn handle_events(&mut self, _ctx: &egui::Context) -> Option<()> {
+    fn handle_events(&mut self, ctx: &egui::Context) -> Option<()> {
         for event in self.event_pool.get_events() {
             match event {
                 EventType::DirGoBack => {
@@ -197,6 +197,30 @@ impl FE {
                 EventType::ReloadDir => {
                     self.set_path(self.path.clone());
                 }
+                // we emit again the MoveFile because dragging and dropping a file
+                // from another app into fe will cause the mouse to only be detected
+                // in the next frame. This way, we can capture the area in which the
+                // file was dropped.
+                EventType::MoveFile(0, files) => {
+                    println!("move file 0");
+                    self.event_pool
+                        .schedule_event(EventType::MoveFile(1, files));
+                }
+                EventType::MoveFile(_, files) => {
+                    let current_mouse_position = ctx.input(|i| i.pointer.hover_pos());
+                    println!("file dropped at {:?}", current_mouse_position);
+                    // TODO: check if we dropped the files on another directory and
+                    // move the files to that instead of the current dir.
+                    for file in files.iter() {
+                        if let Some(path) = &file.path {
+                            let file_name = path.file_name().unwrap_or_default();
+                            let dest_path = self.path.join(file_name);
+                            self.move_file(path, &dest_path);
+                            self.load_dir_entries();
+                        }
+                    }
+                }
+
                 _ => {}
             }
         }
@@ -229,6 +253,12 @@ impl FE {
 
 impl eframe::App for FE {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        if !ctx.input(|i| i.raw.dropped_files.is_empty()) {
+            let dropped_files = ctx.input(|i| i.raw.dropped_files.clone());
+            self.event_pool
+                .emit_event(EventType::MoveFile(0, dropped_files));
+        }
+
         self.event_pool.emit_input_events(ctx);
         // menu bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -412,6 +442,7 @@ impl eframe::App for FE {
         // handle events after drawing everything, since
         // the drawing methods may emit events
         self.handle_events(ctx);
+        self.event_pool.flush_events();
     }
 }
 

@@ -66,6 +66,13 @@ Make sure you use double backlashes on Windows paths.
   - [ ] Move favorites
   - [ ] Hightlight files as user types
   - [ ] Navigate files via keyboard
+- [ ] Move files
+  - [ ] Drag files to dir
+  - [ ] Drag files to favorites
+  - [ ] Drag files from other apps into fe
+    - [x] Current dir
+    - [ ] Another dir
+  - [ ] Drag files from fe to other apps
 - [ ] Data persistence
   - [x] Pinned / Favorites
     - [ ] make desktop and home part of the favorites (not hardcoded)
