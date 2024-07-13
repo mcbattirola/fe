@@ -35,11 +35,17 @@ pub fn draw_file_row(
     event_pool: &mut EventPool,
     commands: &Commands,
 ) {
+    let mut responses = Vec::new();
+
     body.row(style.row_height, |mut row| {
-        row.col(|ui| draw_file_name_cell(ui, &entry, style, event_pool, commands));
-        row.col(|ui| draw_file_size_cell(ui, &entry, event_pool, commands));
-        row.col(|ui| draw_last_modified_cell(ui, &entry, event_pool, commands));
+        responses.push(row.col(|ui| draw_file_name_cell(ui, entry, style, event_pool, commands)));
+        responses.push(row.col(|ui| draw_file_size_cell(ui, entry, event_pool, commands)));
+        responses.push(row.col(|ui| draw_last_modified_cell(ui, entry, event_pool, commands)));
     });
+
+    for (_, response) in &responses {
+        response.context_menu(|ui| get_file_context_menu(ui, entry, event_pool, commands));
+    }
 }
 
 pub fn draw_file_name_cell(
@@ -83,10 +89,6 @@ pub fn draw_file_name_cell(
                 });
             }
         }
-        ui.allocate_space(ui.available_size());
-    })
-    .context_menu(|ui| {
-        get_file_context_menu(ui, entry, event_pool, commands);
     });
 }
 
@@ -96,22 +98,16 @@ pub fn draw_file_size_cell(
     event_pool: &mut EventPool,
     commands: &Commands,
 ) {
-    cell(ui, |ui| {
-        match &entry.entry_type {
-            utils::dir::EntryKind::Dir(_) => {
-                ui.label("");
-            }
-            utils::dir::EntryKind::File(file) => {
-                ui.label(utils::human_readable_size(file.size).to_string())
-                    .context_menu(|ui| {
-                        get_file_context_menu(ui, entry, event_pool, commands);
-                    });
-            }
+    cell(ui, |ui| match &entry.entry_type {
+        utils::dir::EntryKind::Dir(_) => {
+            ui.label("");
         }
-        ui.allocate_space(ui.available_size());
-    })
-    .context_menu(|ui| {
-        get_file_context_menu(ui, entry, event_pool, commands);
+        utils::dir::EntryKind::File(file) => {
+            ui.label(utils::human_readable_size(file.size).to_string())
+                .context_menu(|ui| {
+                    get_file_context_menu(ui, entry, event_pool, commands);
+                });
+        }
     });
 }
 
@@ -121,22 +117,16 @@ pub fn draw_last_modified_cell(
     event_pool: &mut EventPool,
     commands: &Commands,
 ) {
-    cell(ui, |ui| {
-        match &entry.entry_type {
-            utils::dir::EntryKind::Dir(_) => {
-                ui.label("");
-            }
-            utils::dir::EntryKind::File(file) => {
-                ui.label(utils::system_time_to_human_readable(file.modified))
-                    .context_menu(|ui| {
-                        get_file_context_menu(ui, entry, event_pool, commands);
-                    });
-            }
+    cell(ui, |ui| match &entry.entry_type {
+        utils::dir::EntryKind::Dir(_) => {
+            ui.label("");
         }
-        ui.allocate_space(ui.available_size());
-    })
-    .context_menu(|ui| {
-        get_file_context_menu(ui, entry, event_pool, commands);
+        utils::dir::EntryKind::File(file) => {
+            ui.label(utils::system_time_to_human_readable(file.modified))
+                .context_menu(|ui| {
+                    get_file_context_menu(ui, entry, event_pool, commands);
+                });
+        }
     });
 }
 
