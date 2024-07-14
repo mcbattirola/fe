@@ -383,3 +383,16 @@ pub fn is_exe(fs_entry: &fs::DirEntry) -> bool {
         }
     }
 }
+
+pub fn get_parent(path: PathBuf) -> Option<FeEntry> {
+    match path.parent() {
+        None => return None,
+        Some(parent) => {
+            return Some(FeEntry {
+                name: "..".into(),
+                path: parent.to_path_buf(),
+                entry_type: EntryKind::Dir(Dir {}),
+            })
+        }
+    }
+}

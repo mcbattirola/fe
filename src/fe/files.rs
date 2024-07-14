@@ -2,6 +2,7 @@ use super::draw;
 use super::FE;
 use crate::fe::diagnostic::Diagnostic;
 use crate::utils;
+use crate::utils::dir::get_parent;
 use crate::utils::dir::get_sort_icon;
 use crate::utils::dir::DirSortingType;
 use crate::utils::dir::{
@@ -119,6 +120,8 @@ impl FE {
 
     // drawing
     pub fn draw_files(&mut self, ui: &mut egui::Ui) {
+        let mut hovered_entry = None;
+
         ui.vertical(|ui| {
             let mut table = TableBuilder::new(ui)
                 .striped(true)
@@ -193,25 +196,31 @@ impl FE {
                     });
                 })
                 .body(|mut body| {
-                    let _cmd = draw::file::draw_back_dir_row(
+                    if draw::file::draw_back_dir_row(
                         &mut body,
                         self.path.clone(),
                         &self.style,
                         &mut self.event_pool,
                         &self.commands,
-                    );
+                    ) {
+                        hovered_entry = get_parent(self.path.clone())
+                    };
 
                     for entry in &self.display_entries {
-                        draw::file::draw_file_row(
+                        if draw::file::draw_file_row(
                             &mut body,
                             entry,
                             &self.style,
                             &mut self.event_pool,
                             &self.commands,
-                        );
+                        ) {
+                            hovered_entry = Some(entry.clone());
+                        };
                     }
                 });
         });
+
+        self.hovered_file = hovered_entry;
     }
 }
 

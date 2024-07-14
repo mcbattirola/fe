@@ -4,7 +4,7 @@ use crate::commands::Commands;
 use crate::events::{EventPool, EventType};
 use crate::fe::style;
 use crate::utils;
-use crate::utils::dir::FeEntry;
+use crate::utils::dir::{get_parent, FeEntry};
 use egui::{Response, RichText, Ui};
 use egui_extras::TableBody;
 
@@ -14,18 +14,11 @@ pub fn draw_back_dir_row(
     style: &style::Style,
     event_pool: &mut EventPool,
     commands: &Commands,
-) {
-    match current_path.parent() {
-        None => return,
-        Some(parent) => {
-            let entry = FeEntry {
-                name: "..".into(),
-                path: parent.to_path_buf(),
-                entry_type: utils::dir::EntryKind::Dir(utils::dir::Dir {}),
-            };
-            draw_file_row(body, &entry, style, event_pool, commands);
-        }
+) -> bool {
+    if let Some(entry) = get_parent(current_path) {
+        return draw_file_row(body, &entry, style, event_pool, commands);
     }
+    return false;
 }
 
 pub fn draw_file_row(
@@ -34,18 +27,36 @@ pub fn draw_file_row(
     style: &style::Style,
     event_pool: &mut EventPool,
     commands: &Commands,
-) {
+) -> bool {
     let mut responses = Vec::new();
+    let mut hovered = false;
 
     body.row(style.row_height, |mut row| {
         responses.push(row.col(|ui| draw_file_name_cell(ui, entry, style, event_pool, commands)));
         responses.push(row.col(|ui| draw_file_size_cell(ui, entry, event_pool, commands)));
         responses.push(row.col(|ui| draw_last_modified_cell(ui, entry, event_pool, commands)));
+        if row.response().hovered() {
+            hovered = true;
+        }
     });
+
+    // if at this point the row isn't hovered, check if any cell is hovered
+    if !hovered {
+        let hover_pos = responses
+            .get(0)
+            .and_then(|(_, response)| response.ctx.input(|i| i.pointer.hover_pos()));
+
+        hovered = if let Some(hover_pos) = hover_pos {
+            responses.iter().any(|(rect, _)| rect.contains(hover_pos))
+        } else {
+            false
+        };
+    }
 
     for (_, response) in &responses {
         response.context_menu(|ui| get_file_context_menu(ui, entry, event_pool, commands));
     }
+    return hovered;
 }
 
 pub fn draw_file_name_cell(

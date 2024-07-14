@@ -9,7 +9,7 @@ use std::time::Instant;
 use crate::commands::Commands;
 use crate::config::{parse_config, Config};
 use crate::events::{EventPool, EventType};
-use crate::utils::dir::{DirSorting, FeEntry, QuickAccessEntry, SortOrder};
+use crate::utils::dir::{DirSorting, EntryKind, FeEntry, QuickAccessEntry, SortOrder};
 use crate::utils::{self, term};
 use crate::{cli, commands, storage};
 
@@ -50,6 +50,7 @@ pub struct FE {
 
     // custom commands
     commands: commands::Commands,
+    hovered_file: Option<FeEntry>,
 }
 
 impl FE {
@@ -89,6 +90,7 @@ impl FE {
             new_file_name: "".to_owned(),
             diagnostics: Vec::new(),
             commands,
+            hovered_file: None,
         };
 
         fe.load_dir_entries();
@@ -139,7 +141,7 @@ impl FE {
         };
     }
 
-    fn handle_events(&mut self, ctx: &egui::Context) -> Option<()> {
+    fn handle_events(&mut self) -> Option<()> {
         for event in self.event_pool.get_events() {
             match event {
                 EventType::DirGoBack => {
@@ -197,30 +199,32 @@ impl FE {
                 EventType::ReloadDir => {
                     self.set_path(self.path.clone());
                 }
-                // we emit again the MoveFile because dragging and dropping a file
-                // from another app into fe will cause the mouse to only be detected
-                // in the next frame. This way, we can capture the area in which the
-                // file was dropped.
-                EventType::MoveFile(0, files) => {
-                    println!("move file 0");
-                    self.event_pool
-                        .schedule_event(EventType::MoveFile(1, files));
-                }
-                EventType::MoveFile(_, files) => {
-                    let current_mouse_position = ctx.input(|i| i.pointer.hover_pos());
-                    println!("file dropped at {:?}", current_mouse_position);
-                    // TODO: check if we dropped the files on another directory and
-                    // move the files to that instead of the current dir.
+                EventType::MoveFile(3, files) => {
                     for file in files.iter() {
                         if let Some(path) = &file.path {
                             let file_name = path.file_name().unwrap_or_default();
-                            let dest_path = self.path.join(file_name);
+                            // drop either in the current dir or the hovered dir
+                            let dest_path = match self.hovered_file {
+                                None => self.path.join(file_name),
+                                Some(ref entry) => match entry.entry_type {
+                                    EntryKind::Dir(_) => entry.path.join(file_name),
+                                    EntryKind::File(_) => self.path.join(file_name),
+                                },
+                            };
                             self.move_file(path, &dest_path);
                             self.load_dir_entries();
                         }
                     }
                 }
-
+                // we emit again the MoveFile because dragging and dropping a file
+                // from another app into fe will cause the mouse to only be detected
+                // in the next frame. This way, we can capture the area in which the
+                // file was dropped.
+                EventType::MoveFile(num, files) => {
+                    println!("move file {:?}", num);
+                    self.event_pool
+                        .schedule_event(EventType::MoveFile(num + 1, files));
+                }
                 _ => {}
             }
         }
@@ -444,7 +448,7 @@ impl eframe::App for FE {
 
         // handle events after drawing everything, since
         // the drawing methods may emit events
-        self.handle_events(ctx);
+        self.handle_events();
         self.event_pool.flush_events();
     }
 }
