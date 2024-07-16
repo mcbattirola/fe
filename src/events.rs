@@ -2,6 +2,7 @@ use egui::{self, DroppedFile};
 
 use crate::commands::{DirCommand, FileCommand};
 use crate::utils;
+use crate::utils::dir::FeEntry;
 
 #[derive(Debug)]
 pub enum Modifier {
@@ -26,6 +27,8 @@ pub enum EventType {
     RunDirCmd(DirCommand),
     RunFileCmd(FileCommand, std::path::PathBuf),
     MoveFile(u8, Vec<DroppedFile>),
+    StartDragEntry(FeEntry),
+    EndDragEntry,
     ReloadDir,
     _Quit,
 }

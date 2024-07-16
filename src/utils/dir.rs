@@ -93,6 +93,15 @@ pub struct FeEntry {
     pub entry_type: EntryKind,
 }
 
+impl FeEntry {
+    pub fn get_icon(&self) -> String {
+        return match self.entry_type {
+            EntryKind::Dir(_) => "📁".to_string(),
+            EntryKind::File(_) => "📃".to_string(),
+        };
+    }
+}
+
 pub fn fs_to_fe_entry(fs_entry: fs::DirEntry) -> Result<FeEntry, io::Error> {
     let file_type = fs_entry.file_type()?;
     let metadata = fs_entry.metadata()?;

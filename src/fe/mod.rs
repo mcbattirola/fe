@@ -51,6 +51,8 @@ pub struct FE {
     // custom commands
     commands: commands::Commands,
     hovered_file: Option<FeEntry>,
+
+    dragging_file: Option<FeEntry>,
 }
 
 impl FE {
@@ -91,6 +93,7 @@ impl FE {
             diagnostics: Vec::new(),
             commands,
             hovered_file: None,
+            dragging_file: None,
         };
 
         fe.load_dir_entries();
@@ -221,9 +224,29 @@ impl FE {
                 // in the next frame. This way, we can capture the area in which the
                 // file was dropped.
                 EventType::MoveFile(num, files) => {
-                    println!("move file {:?}", num);
                     self.event_pool
                         .schedule_event(EventType::MoveFile(num + 1, files));
+                }
+                EventType::StartDragEntry(entry) => {
+                    self.dragging_file = Some(entry);
+                }
+                EventType::EndDragEntry => {
+                    if let Some(file) = &self.dragging_file {
+                        if let Some(dest) = &self.hovered_file {
+                            match dest.entry_type {
+                                EntryKind::Dir(_) => {
+                                    // Extract paths to avoid multiple mutable borrows
+                                    let file_path = file.path.clone();
+                                    let mut dest_path = dest.path.clone();
+                                    dest_path.push(file.name.clone());
+                                    self.move_file(&file_path, &dest_path);
+                                    self.load_dir_entries();
+                                }
+                                EntryKind::File(_) => (),
+                            }
+                        }
+                    }
+                    self.dragging_file = None;
                 }
                 _ => {}
             }
@@ -445,6 +468,43 @@ impl eframe::App for FE {
         }
 
         self.draw_diagnostics(ctx);
+
+        if ctx.input(|i| i.pointer.any_released()) {
+            self.event_pool.emit_event(EventType::EndDragEntry);
+        }
+
+        // draw dragging file
+        // TODO:
+        // - move this to a method,
+        // - improve style
+        // - hover effect over hovered dirs
+        egui::Area::new(egui::Id::new("dragging_label_area"))
+            .fixed_pos(egui::pos2(0.0, 0.0)) // This position can be adjusted as needed
+            .show(ctx, |ui| {
+                if let Some(dragging) = &self.dragging_file {
+                    // Get the current mouse position
+                    if let Some(pos) = ctx.input(|i| i.pointer.hover_pos()) {
+                        let draw_pos = egui::Pos2::new(pos.x + 5.0, pos.y - 5.0);
+                        // Set the position for the label and draw it
+                        ui.painter().text(
+                            draw_pos,
+                            egui::Align2::LEFT_TOP,
+                            format!(
+                                "{} {}",
+                                dragging.get_icon(),
+                                dragging.name.clone().into_string().unwrap()
+                            ),
+                            egui::FontId {
+                                size: 16.0,
+                                family: ctx.style().text_styles[&egui::TextStyle::Body]
+                                    .family
+                                    .clone(),
+                            },
+                            ui.visuals().text_color(),
+                        );
+                    }
+                }
+            });
 
         // handle events after drawing everything, since
         // the drawing methods may emit events

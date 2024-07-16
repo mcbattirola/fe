@@ -133,7 +133,7 @@ impl FE {
                 .min_scrolled_height(0.0)
                 .max_scroll_height(600.0);
 
-            table = table.sense(egui::Sense::click());
+            table = table.sense(egui::Sense::click_and_drag());
 
             table
                 .header(20.0, |mut header| {

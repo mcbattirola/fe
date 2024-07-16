@@ -55,7 +55,11 @@ pub fn draw_file_row(
 
     for (_, response) in &responses {
         response.context_menu(|ui| get_file_context_menu(ui, entry, event_pool, commands));
+        if response.drag_started() {
+            event_pool.emit_event(EventType::StartDragEntry(entry.clone()));
+        }
     }
+
     return hovered;
 }
 
@@ -67,10 +71,7 @@ pub fn draw_file_name_cell(
     commands: &Commands,
 ) {
     let name = entry.name.to_owned().to_str().unwrap().to_owned();
-    let icon = match entry.entry_type {
-        utils::dir::EntryKind::Dir(_) => "📁",
-        utils::dir::EntryKind::File(_) => "📃",
-    };
+    let icon = entry.get_icon();
 
     cell(ui, |ui| {
         ui.label(icon);
